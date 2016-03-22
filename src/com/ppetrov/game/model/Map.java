@@ -65,7 +65,7 @@ public class Map {
         Random random = new Random();
         for (int i = 0; i < this.field.length; i++) {
             for (int j = 0; j < this.field[i].length; j++) {
-                this.field[i][j] = random.nextBoolean();
+                this.field[i][j] = random.nextDouble() < 0.25;
             }
         }
     }
