@@ -57,7 +57,6 @@ public class Map {
     }
 
     public boolean[][] getField() {
-        boolean[][] copy = new boolean[this.field.length][];
         return deepArrayCopy(this.field);
     }
 
