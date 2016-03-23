@@ -35,6 +35,8 @@ public class Game extends Application {
 
         HBox root = new HBox();
         root.getChildren().add(scrollPane);
+        root.setFillHeight(false);
+
         primaryStage.setScene(new Scene(root));
 
         primaryStage.show();
