@@ -1,9 +1,6 @@
 package com.ppetrov.game.viewer;
 
 import com.ppetrov.game.model.Map;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Group;
@@ -12,7 +9,6 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -23,6 +19,8 @@ import java.util.TimerTask;
 public class Game extends Application {
 
     private Map map = new Map(100, 100);
+
+    private Timer timer = new Timer();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -38,9 +36,14 @@ public class Game extends Application {
         primaryStage.show();
     }
 
+    @Override
+    public void stop() throws Exception {
+        this.timer.cancel();
+        super.stop();
+    }
+
     private void drawGame(GraphicsContext gc) {
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
+        this.timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 Platform.runLater(() -> drawGameStep(gc));
