@@ -55,7 +55,7 @@ public class Game extends Application {
         Label heightLabel = new Label("Field height:");
         Spinner<Integer> heightSpinner = new Spinner<>(1, 150, 100);
 
-        Button applySettingsButton = new Button("Apply");
+        Button applySettingsButton = new Button("Restart");
         applySettingsButton.setMaxWidth(Integer.MAX_VALUE);
         applySettingsButton.setOnAction(event -> {
             this.width = widthSpinner.getValue();
@@ -72,12 +72,12 @@ public class Game extends Application {
 
         this.canvas.widthProperty().bind(
                 canvasPane.widthProperty().
-                subtract(settingsGroup.getWidth()).
-                subtract(2)
+                        subtract(settingsGroup.getWidth()).
+                        subtract(2)
         );
         this.canvas.heightProperty().bind(
                 canvasPane.heightProperty().
-                subtract(2)
+                        subtract(2)
         );
 
         HBox root = new HBox();
@@ -106,19 +106,27 @@ public class Game extends Application {
     private void drawGameStep(GraphicsContext gc) {
         gc.setFill(Color.GRAY);
         gc.fillRect(0, 0, this.canvas.getWidth(), this.canvas.getHeight());
-        for (int i = 0; i < getFieldWidth(); i++) {
-            for (int j = 0; j < getFieldHeight(); j++) {
+
+        int cellSize = getCellSize();
+        int fieldWidth = getFieldWidth();
+        int fieldHeight = getFieldHeight();
+
+        int startX = (int) ((this.canvas.getWidth() - cellSize * fieldWidth) / 2);
+        int startY = (int) ((this.canvas.getHeight() - cellSize * fieldHeight) / 2);
+
+        for (int i = 0; i < fieldWidth; i++) {
+            for (int j = 0; j < fieldHeight; j++) {
                 boolean isAlive = this.map.getCell(i, j);
-                gc.setFill(isAlive ? Color.GREEN : Color.GRAY);
-                int cellSize = getCellSize();
-                gc.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
+                gc.setFill(isAlive ? Color.DARKGREEN : Color.SANDYBROWN);
+                gc.fillRect(startX + i * cellSize, startY + j * cellSize, cellSize - 1, cellSize - 1);
             }
         }
+
         this.map.nextState();
     }
 
     private int getCellSize() {
-        return (int) Math.ceil(Math.min(
+        return (int) Math.floor(Math.min(
                 this.canvas.getWidth() / this.map.getWidth(),
                 this.canvas.getHeight() / this.map.getHeight()
         ));
