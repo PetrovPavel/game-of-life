@@ -15,19 +15,19 @@ public class Map {
     }
 
     public Map(int width, int height) {
-        this.field = new boolean[width][height];
+        this.field = new boolean[height][width];
         fillRandomly();
     }
 
     public int getWidth() {
-        return this.field.length;
-    }
-
-    public int getHeight() {
         if (this.field.length > 0) {
             return this.field[0].length;
         }
         return 0;
+    }
+
+    public int getHeight() {
+        return this.field.length;
     }
 
     public boolean isEmpty() {

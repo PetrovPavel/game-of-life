@@ -12,6 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -55,12 +56,16 @@ public class Game extends Application {
         this.canvas.setOnMouseMoved(canvasMouseEventHandler);
         this.canvas.setOnMouseExited(event -> primaryStage.getScene().setCursor(Cursor.DEFAULT));
         this.canvas.setOnMouseClicked(event -> {
-            Integer row = getCellRowFromCanvas(event.getX());
-            Integer column = getCellColumnFromCanvas(event.getY());
+            Integer row = getCellRowFromCanvas(event.getY());
+            Integer column = getCellColumnFromCanvas(event.getX());
             if (row != null && column != null) {
-                boolean isAlive = this.map.getCell(row, column);
-                this.map.setCell(row, column, !isAlive);
-                drawCell(gc, row, column);
+                MouseButton mouseButton = event.getButton();
+                boolean isPrimary = MouseButton.PRIMARY.equals(mouseButton);
+                boolean isSecondary = MouseButton.SECONDARY.equals(mouseButton);
+                if (isPrimary || isSecondary) {
+                    this.map.setCell(row, column, isPrimary);
+                    drawCell(gc, row, column);
+                }
             }
         });
 
@@ -145,8 +150,8 @@ public class Game extends Application {
 
         gc.setFill(isAlive ? Color.DARKGREEN : Color.SANDYBROWN);
         gc.fillRect(
-                startX + row * cellSize,
-                startY + column * cellSize,
+                startX + column * cellSize,
+                startY + row * cellSize,
                 cellSize - borderWidth,
                 cellSize - borderWidth
         );
