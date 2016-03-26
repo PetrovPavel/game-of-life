@@ -58,4 +58,13 @@ public class MapTest {
         assertTrue(map.getCell(2, 2));
     }
 
+    @Test
+    public void testSetCell() throws Exception {
+        Map map = new Map(new boolean[][]{{true, false}, {false, true}});
+        map.setCell(0, 0, false);
+        map.setCell(1, 1, false);
+        assertFalse(map.getCell(0, 0));
+        assertFalse(map.getCell(1, 1));
+    }
+
 }

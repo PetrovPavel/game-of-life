@@ -60,6 +60,13 @@ public class Map {
         return getCell(this.field, row, column);
     }
 
+    public void setCell(int row, int column, boolean value) {
+        row = fixRow(row);
+        column = fixColumn(row, column);
+
+        this.field[row][column] = value;
+    }
+
     private boolean getCell(boolean[][] field, int row, int column) {
         row = fixRow(row);
         column = fixColumn(row, column);
@@ -109,13 +116,6 @@ public class Map {
         }
 
         return count;
-    }
-
-    private void setCell(int row, int column, boolean value) {
-        row = fixRow(row);
-        column = fixColumn(row, column);
-
-        this.field[row][column] = value;
     }
 
     private int fixRow(int row) {
