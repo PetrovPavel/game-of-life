@@ -19,6 +19,17 @@ public class Map {
         fillRandomly();
     }
 
+    public int getWidth() {
+        return this.field.length;
+    }
+
+    public int getHeight() {
+        if (this.field.length > 0) {
+            return this.field[0].length;
+        }
+        return 0;
+    }
+
     public boolean isEmpty() {
         for (boolean[] row : this.field) {
             for (boolean cell : row) {

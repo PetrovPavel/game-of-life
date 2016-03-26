@@ -11,6 +11,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -27,6 +28,8 @@ public class Game extends Application {
 
     private int height = 100;
 
+    private Canvas canvas;
+
     private Map map = new Map(100, 100);
 
     private Timer timer = new Timer();
@@ -38,10 +41,14 @@ public class Game extends Application {
         ScrollPane canvasPane = new ScrollPane();
         canvasPane.setStyle("-fx-background-color:transparent;");
 
-        Canvas canvas = new Canvas(500, 500);
-        GraphicsContext gc = canvas.getGraphicsContext2D();
+        this.canvas = new Canvas();
+        GraphicsContext gc = this.canvas.getGraphicsContext2D();
+        this.canvas.widthProperty().addListener(observable -> drawGameStep(gc));
+        this.canvas.heightProperty().addListener(observable -> drawGameStep(gc));
+        canvasPane.setContent(this.canvas);
+        canvasPane.setPrefSize(500, 500);
+
         drawGame(gc);
-        canvasPane.setContent(canvas);
 
         Label widthLabel = new Label("Field width:");
         Spinner<Integer> widthSpinner = new Spinner<>(1, 150, 100);
@@ -54,9 +61,6 @@ public class Game extends Application {
             this.width = widthSpinner.getValue();
             this.height = heightSpinner.getValue();
             this.map = new Map(this.width, this.height);
-            int cellSize = getCellSize();
-            canvas.setWidth(cellSize * this.width);
-            canvas.setHeight(cellSize * this.height);
         });
 
         VBox settingsGroup = new VBox(
@@ -66,8 +70,19 @@ public class Game extends Application {
         );
         settingsGroup.setStyle("-fx-background-color:transparent;");
 
+        this.canvas.widthProperty().bind(
+                canvasPane.widthProperty().
+                subtract(settingsGroup.getWidth()).
+                subtract(2)
+        );
+        this.canvas.heightProperty().bind(
+                canvasPane.heightProperty().
+                subtract(2)
+        );
+
         HBox root = new HBox();
         root.getChildren().addAll(canvasPane, settingsGroup);
+        HBox.setHgrow(canvasPane, Priority.ALWAYS);
 
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
@@ -89,6 +104,8 @@ public class Game extends Application {
     }
 
     private void drawGameStep(GraphicsContext gc) {
+        gc.setFill(Color.GRAY);
+        gc.fillRect(0, 0, this.canvas.getWidth(), this.canvas.getHeight());
         for (int i = 0; i < getFieldWidth(); i++) {
             for (int j = 0; j < getFieldHeight(); j++) {
                 boolean isAlive = this.map.getCell(i, j);
@@ -101,7 +118,10 @@ public class Game extends Application {
     }
 
     private int getCellSize() {
-        return 5;
+        return (int) Math.ceil(Math.min(
+                this.canvas.getWidth() / this.map.getWidth(),
+                this.canvas.getHeight() / this.map.getHeight()
+        ));
     }
 
     private int getFieldWidth() {
