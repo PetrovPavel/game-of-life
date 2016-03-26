@@ -107,29 +107,36 @@ public class Game extends Application {
         gc.setFill(Color.GRAY);
         gc.fillRect(0, 0, this.canvas.getWidth(), this.canvas.getHeight());
 
-        int cellSize = getCellSize();
+        double cellSize = getCellSize();
         int fieldWidth = getFieldWidth();
         int fieldHeight = getFieldHeight();
 
-        int startX = (int) ((this.canvas.getWidth() - cellSize * fieldWidth) / 2);
-        int startY = (int) ((this.canvas.getHeight() - cellSize * fieldHeight) / 2);
+        double startX = (this.canvas.getWidth() - cellSize * fieldWidth) / 2;
+        double startY = (this.canvas.getHeight() - cellSize * fieldHeight) / 2;
+
+        int borderWidth = 1;
 
         for (int i = 0; i < fieldWidth; i++) {
             for (int j = 0; j < fieldHeight; j++) {
                 boolean isAlive = this.map.getCell(i, j);
                 gc.setFill(isAlive ? Color.DARKGREEN : Color.SANDYBROWN);
-                gc.fillRect(startX + i * cellSize, startY + j * cellSize, cellSize - 1, cellSize - 1);
+                gc.fillRect(
+                        startX + i * cellSize,
+                        startY + j * cellSize,
+                        cellSize - borderWidth,
+                        cellSize - borderWidth
+                );
             }
         }
 
         this.map.nextState();
     }
 
-    private int getCellSize() {
-        return (int) Math.floor(Math.min(
+    private double getCellSize() {
+        return Math.min(
                 this.canvas.getWidth() / this.map.getWidth(),
                 this.canvas.getHeight() / this.map.getHeight()
-        ));
+        );
     }
 
     private int getFieldWidth() {
