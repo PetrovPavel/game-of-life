@@ -34,6 +34,10 @@ public class Game extends Application {
 
     private Timer timer = new Timer();
 
+    private Integer columnUnderCursor;
+
+    private Integer rowUnderCursor;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Game of Life");
@@ -43,18 +47,29 @@ public class Game extends Application {
 
         this.canvas = new Canvas();
         GraphicsContext gc = this.canvas.getGraphicsContext2D();
-        this.canvas.widthProperty().addListener(observable -> drawGameStep(gc));
-        this.canvas.heightProperty().addListener(observable -> drawGameStep(gc));
+        this.canvas.widthProperty().addListener(observable -> redraw(gc));
+        this.canvas.heightProperty().addListener(observable -> redraw(gc));
         canvasPane.setContent(this.canvas);
         canvasPane.setPrefSize(500, 500);
 
         EventHandler<MouseEvent> canvasMouseEventHandler = event -> {
-            boolean inDrawingArea = isInDrawingArea(event.getX(), event.getY());
+            double x = event.getX();
+            double y = event.getY();
+            boolean inDrawingArea = isInDrawingArea(x, y);
             primaryStage.getScene().setCursor(inDrawingArea ? Cursor.HAND : Cursor.DEFAULT);
+            if (inDrawingArea) {
+                redraw(gc);
+                this.rowUnderCursor = getCellRowFromCanvas(y);
+                this.columnUnderCursor = getCellColumnFromCanvas(x);
+            }
         };
         this.canvas.setOnMouseEntered(canvasMouseEventHandler);
         this.canvas.setOnMouseMoved(canvasMouseEventHandler);
-        this.canvas.setOnMouseExited(event -> primaryStage.getScene().setCursor(Cursor.DEFAULT));
+        this.canvas.setOnMouseExited(event -> {
+            clearRowsUnderCursor();
+            redraw(gc);
+            primaryStage.getScene().setCursor(Cursor.DEFAULT);
+        });
         this.canvas.setOnMouseClicked(event -> {
             Integer row = getCellRowFromCanvas(event.getY());
             Integer column = getCellColumnFromCanvas(event.getX());
@@ -64,7 +79,8 @@ public class Game extends Application {
                 boolean isSecondary = MouseButton.SECONDARY.equals(mouseButton);
                 if (isPrimary || isSecondary) {
                     this.map.setCell(row, column, isPrimary);
-                    drawCell(gc, row, column);
+                    drawCalculatedCell(gc, row, column);
+                    redraw(gc);
                 }
             }
         });
@@ -108,6 +124,11 @@ public class Game extends Application {
         primaryStage.show();
     }
 
+    private void clearRowsUnderCursor() {
+        this.rowUnderCursor = null;
+        this.columnUnderCursor = null;
+    }
+
     @Override
     public void stop() throws Exception {
         this.timer.cancel();
@@ -124,16 +145,33 @@ public class Game extends Application {
     }
 
     private void drawGameStep(GraphicsContext gc) {
+        redraw(gc);
+        this.map.nextState();
+    }
+
+    private void redraw(GraphicsContext gc) {
         gc.setFill(Color.GRAY);
         gc.fillRect(0, 0, this.canvas.getWidth(), this.canvas.getHeight());
 
         for (int i = 0; i < getFieldWidth(); i++) {
             for (int j = 0; j < getFieldHeight(); j++) {
-                drawCell(gc, i, j);
+                drawCalculatedCell(gc, i, j);
             }
         }
+        drawCellsUnderCursor(gc);
+    }
 
-        this.map.nextState();
+    private void drawCellsUnderCursor(GraphicsContext gc) {
+        if (this.rowUnderCursor != null && this.columnUnderCursor != null) {
+            gc.setFill(new Color(1, 1, 1, 0.5));
+            drawCell(gc, this.rowUnderCursor, this.columnUnderCursor);
+        }
+    }
+
+    private void drawCalculatedCell(GraphicsContext gc, int row, int column) {
+        boolean isAlive = this.map.getCell(row, column);
+        gc.setFill(isAlive ? Color.DARKGREEN : Color.SANDYBROWN);
+        drawCell(gc, row, column);
     }
 
     private void drawCell(GraphicsContext gc, int row, int column) {
@@ -146,9 +184,6 @@ public class Game extends Application {
 
         int borderWidth = 1;
 
-        boolean isAlive = this.map.getCell(row, column);
-
-        gc.setFill(isAlive ? Color.DARKGREEN : Color.SANDYBROWN);
         gc.fillRect(
                 startX + column * cellSize,
                 startY + row * cellSize,
