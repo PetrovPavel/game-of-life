@@ -3,9 +3,6 @@ package com.ppetrov.game.model;
 import java.util.Arrays;
 import java.util.Random;
 
-/**
- * Created by Pavel on 22.03.2016.
- */
 public class Map {
 
     private boolean[][] field;

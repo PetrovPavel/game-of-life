@@ -23,9 +23,6 @@ import javafx.stage.Stage;
 import java.util.Timer;
 import java.util.TimerTask;
 
-/**
- * Created by Pavel on 22.03.2016.
- */
 public class Game extends Application {
 
     private Canvas canvas;
@@ -145,8 +142,8 @@ public class Game extends Application {
     }
 
     private void drawGameStep(GraphicsContext gc) {
-        redraw(gc);
         this.map.nextState();
+        redraw(gc);
     }
 
     private void redraw(GraphicsContext gc) {

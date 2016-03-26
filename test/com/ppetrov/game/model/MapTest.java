@@ -4,9 +4,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by Pavel on 22.03.2016.
- */
 public class MapTest {
 
     @Test
