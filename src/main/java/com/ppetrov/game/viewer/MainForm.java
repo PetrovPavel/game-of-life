@@ -86,6 +86,18 @@ public class MainForm extends Application implements IGameListener {
         Label heightLabel = new Label("Field height:");
         Spinner<Integer> heightSpinner = new Spinner<>(10, 150, getFieldHeight());
 
+        Button pauseResumeButton = new Button("Pause");
+        pauseResumeButton.setMaxWidth(Integer.MAX_VALUE);
+        pauseResumeButton.setOnAction(event -> {
+            if (this.game.isPause()) {
+                this.game.start();
+                pauseResumeButton.setText("Pause");
+            } else {
+                this.game.pause();
+                pauseResumeButton.setText("Resume");
+            }
+        });
+
         Button applySettingsButton = new Button("Restart");
         applySettingsButton.setMaxWidth(Integer.MAX_VALUE);
         applySettingsButton.setOnAction(event -> {
@@ -96,6 +108,7 @@ public class MainForm extends Application implements IGameListener {
         VBox settingsGroup = new VBox(
                 widthLabel, widthSpinner,
                 heightLabel, heightSpinner,
+                pauseResumeButton,
                 applySettingsButton
         );
         settingsGroup.setStyle("-fx-background-color:transparent;");

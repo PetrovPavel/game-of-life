@@ -9,7 +9,9 @@ public class Game {
 
     private Map map;
 
-    private Timer timer = new Timer();
+    private Timer timer;
+
+    private boolean isPause = true;
 
     private Set<IGameListener> listeners;
 
@@ -39,12 +41,23 @@ public class Game {
     }
 
     public void start() {
+        this.isPause = false;
+        this.timer = new Timer();
         this.timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 performStep();
             }
         }, 0, 1000);
+    }
+
+    public void pause() {
+        this.timer.cancel();
+        this.isPause = true;
+    }
+
+    public boolean isPause() {
+        return this.isPause;
     }
 
     public void stop() {
