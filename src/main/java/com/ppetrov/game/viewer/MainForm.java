@@ -50,11 +50,9 @@ public class MainForm extends Application implements IGameListener {
             double y = event.getY();
             boolean inDrawingArea = isInDrawingArea(x, y);
             primaryStage.getScene().setCursor(inDrawingArea ? Cursor.HAND : Cursor.DEFAULT);
-            if (inDrawingArea) {
-                redraw(gc);
-                this.rowUnderCursor = getCellRowFromCanvas(y);
-                this.columnUnderCursor = getCellColumnFromCanvas(x);
-            }
+            this.rowUnderCursor = getCellRowFromCanvas(y);
+            this.columnUnderCursor = getCellColumnFromCanvas(x);
+            redraw(gc);
         };
         this.canvas.setOnMouseEntered(canvasMouseEventHandler);
         this.canvas.setOnMouseMoved(canvasMouseEventHandler);
@@ -192,7 +190,7 @@ public class MainForm extends Application implements IGameListener {
         int fieldWidth = getFieldWidth();
         double startX = (this.canvas.getWidth() - cellSize * fieldWidth) / 2;
 
-        int column = (int) ((x - startX) / cellSize);
+        int column = (int) Math.floor((x - startX) / cellSize);
         if (0 <= column && column < fieldWidth) {
             return column;
         }
@@ -205,7 +203,7 @@ public class MainForm extends Application implements IGameListener {
         int fieldHeight = getFieldHeight();
         double startY = (this.canvas.getHeight() - cellSize * fieldHeight) / 2;
 
-        int row = (int) ((y - startY) / cellSize);
+        int row = (int) Math.floor((y - startY) / cellSize);
         if (0 <= row && row < fieldHeight) {
             return row;
         }
