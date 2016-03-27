@@ -61,7 +61,7 @@ public class Game {
 
     protected void performStep() {
         this.map.nextState();
-        this.listeners.forEach(IGameListener::onStepPerformed);
+        this.listeners.forEach(IGameListener::onGameStepPerformed);
     }
 
 }

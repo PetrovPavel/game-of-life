@@ -90,7 +90,7 @@ public class MainForm extends Application implements IGameListener {
         applySettingsButton.setMaxWidth(Integer.MAX_VALUE);
         applySettingsButton.setOnAction(event -> {
             this.game.startNewMap(widthSpinner.getValue(), heightSpinner.getValue());
-            drawGameStep(gc);
+            redraw(gc);
         });
 
         VBox settingsGroup = new VBox(
@@ -128,10 +128,6 @@ public class MainForm extends Application implements IGameListener {
         this.game.removeListener(this);
         this.game.stop();
         super.stop();
-    }
-
-    private void drawGameStep(GraphicsContext gc) {
-        redraw(gc);
     }
 
     private void redraw(GraphicsContext gc) {
@@ -226,8 +222,8 @@ public class MainForm extends Application implements IGameListener {
     }
 
     @Override
-    public void onStepPerformed() {
-        Platform.runLater(() -> drawGameStep(this.canvas.getGraphicsContext2D()));
+    public void onGameStepPerformed() {
+        Platform.runLater(() -> redraw(this.canvas.getGraphicsContext2D()));
     }
 
 }
