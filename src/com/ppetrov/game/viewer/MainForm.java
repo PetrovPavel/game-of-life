@@ -1,6 +1,7 @@
 package com.ppetrov.game.viewer;
 
-import com.ppetrov.game.model.Map;
+import com.ppetrov.game.model.Game;
+import com.ppetrov.game.model.IGameListener;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -20,16 +21,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
-public class Game extends Application {
+public class MainForm extends Application implements IGameListener {
 
     private Canvas canvas;
 
-    private Map map = new Map(50, 50);
-
-    private Timer timer = new Timer();
+    private Game game = new Game();
 
     private Integer columnUnderCursor;
 
@@ -75,14 +71,15 @@ public class Game extends Application {
                 boolean isPrimary = MouseButton.PRIMARY.equals(mouseButton);
                 boolean isSecondary = MouseButton.SECONDARY.equals(mouseButton);
                 if (isPrimary || isSecondary) {
-                    this.map.setCell(row, column, isPrimary);
+                    this.game.setCell(row, column, isPrimary);
                     drawCalculatedCell(gc, row, column);
                     redraw(gc);
                 }
             }
         });
 
-        drawGame(gc);
+        this.game.addListener(this);
+        this.game.start();
 
         Label widthLabel = new Label("Field width:");
         Spinner<Integer> widthSpinner = new Spinner<>(10, 150, getFieldWidth());
@@ -92,7 +89,7 @@ public class Game extends Application {
         Button applySettingsButton = new Button("Restart");
         applySettingsButton.setMaxWidth(Integer.MAX_VALUE);
         applySettingsButton.setOnAction(event -> {
-            this.map = new Map(widthSpinner.getValue(), heightSpinner.getValue());
+            this.game.startNewMap(widthSpinner.getValue(), heightSpinner.getValue());
             drawGameStep(gc);
         });
 
@@ -128,21 +125,12 @@ public class Game extends Application {
 
     @Override
     public void stop() throws Exception {
-        this.timer.cancel();
+        this.game.removeListener(this);
+        this.game.stop();
         super.stop();
     }
 
-    private void drawGame(GraphicsContext gc) {
-        this.timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                Platform.runLater(() -> drawGameStep(gc));
-            }
-        }, 0, 1000);
-    }
-
     private void drawGameStep(GraphicsContext gc) {
-        this.map.nextState();
         redraw(gc);
     }
 
@@ -167,7 +155,7 @@ public class Game extends Application {
     }
 
     private void drawCalculatedCell(GraphicsContext gc, int row, int column) {
-        boolean isAlive = this.map.getCell(row, column);
+        boolean isAlive = this.game.getCell(row, column);
         gc.setFill(isAlive ? Color.DARKGREEN : Color.SANDYBROWN);
         drawCell(gc, row, column);
     }
@@ -230,11 +218,16 @@ public class Game extends Application {
     }
 
     private int getFieldWidth() {
-        return this.map.getWidth();
+        return this.game.getWidth();
     }
 
     private int getFieldHeight() {
-        return this.map.getHeight();
+        return this.game.getHeight();
+    }
+
+    @Override
+    public void onStepPerformed() {
+        Platform.runLater(() -> drawGameStep(this.canvas.getGraphicsContext2D()));
     }
 
 }
