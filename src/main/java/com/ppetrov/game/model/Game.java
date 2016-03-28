@@ -31,7 +31,7 @@ public class Game {
     public Observable<Long> start() {
         return Observable.
                 interval(0, 1, TimeUnit.SECONDS).
-                doOnEach(aLong -> this.map.nextState());
+                doOnEach(tick -> this.map.nextState());
     }
 
 }

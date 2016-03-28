@@ -37,15 +37,44 @@ public class MainForm extends Application {
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Game of Life");
 
-        ScrollPane canvasPane = new ScrollPane();
-        canvasPane.setStyle("-fx-background-color:transparent;");
+        ScrollPane canvasPane = createCanvasPane(primaryStage);
+        VBox settingsGroup = createSettingsPane();
 
-        this.canvas = new Canvas();
-        GraphicsContext gc = this.canvas.getGraphicsContext2D();
-        this.canvas.widthProperty().addListener(observable -> redraw(gc));
-        this.canvas.heightProperty().addListener(observable -> redraw(gc));
+        this.canvas.widthProperty().bind(
+                canvasPane.widthProperty().
+                        subtract(settingsGroup.getWidth()).
+                        subtract(2)
+        );
+        this.canvas.heightProperty().bind(
+                canvasPane.heightProperty().
+                        subtract(2)
+        );
+
+        subscribeOnGameChanges();
+
+        HBox root = new HBox();
+        root.getChildren().addAll(canvasPane, settingsGroup);
+        HBox.setHgrow(canvasPane, Priority.ALWAYS);
+
+        primaryStage.setScene(new Scene(root));
+        primaryStage.show();
+    }
+
+    private ScrollPane createCanvasPane(Stage primaryStage) {
+        ScrollPane canvasPane = new ScrollPane();
+        createCanvas(primaryStage);
+
         canvasPane.setContent(this.canvas);
+        canvasPane.setStyle("-fx-background-color:transparent;");
         canvasPane.setPrefSize(500, 500);
+
+        return canvasPane;
+    }
+
+    private void createCanvas(Stage primaryStage) {
+        this.canvas = new Canvas();
+        this.canvas.widthProperty().addListener(observable -> redraw());
+        this.canvas.heightProperty().addListener(observable -> redraw());
 
         EventHandler<MouseEvent> canvasMouseEventHandler = event -> {
             double x = event.getX();
@@ -54,13 +83,13 @@ public class MainForm extends Application {
             primaryStage.getScene().setCursor(inDrawingArea ? Cursor.HAND : Cursor.DEFAULT);
             this.rowUnderCursor = getCellRowFromCanvas(y);
             this.columnUnderCursor = getCellColumnFromCanvas(x);
-            redraw(gc);
+            redraw();
         };
         this.canvas.setOnMouseEntered(canvasMouseEventHandler);
         this.canvas.setOnMouseMoved(canvasMouseEventHandler);
         this.canvas.setOnMouseExited(event -> {
             clearRowsUnderCursor();
-            redraw(gc);
+            redraw();
             primaryStage.getScene().setCursor(Cursor.DEFAULT);
         });
         this.canvas.setOnMouseClicked(event -> {
@@ -72,14 +101,13 @@ public class MainForm extends Application {
                 boolean isSecondary = MouseButton.SECONDARY.equals(mouseButton);
                 if (isPrimary || isSecondary) {
                     this.game.setCell(row, column, isPrimary);
-                    drawCalculatedCell(gc, row, column);
-                    redraw(gc);
+                    redraw();
                 }
             }
         });
+    }
 
-        subscribeOnGameChanges();
-
+    private VBox createSettingsPane() {
         Label widthLabel = new Label("Field width:");
         Spinner<Integer> widthSpinner = new Spinner<>(10, 150, getFieldWidth());
         Label heightLabel = new Label("Field height:");
@@ -101,7 +129,7 @@ public class MainForm extends Application {
         restartButton.setMaxWidth(Integer.MAX_VALUE);
         restartButton.setOnAction(event -> {
             this.game.startNewMap(widthSpinner.getValue(), heightSpinner.getValue());
-            redraw(gc);
+            redraw();
         });
 
         VBox settingsGroup = new VBox(
@@ -111,30 +139,12 @@ public class MainForm extends Application {
                 restartButton
         );
         settingsGroup.setStyle("-fx-background-color:transparent;");
-
-        this.canvas.widthProperty().bind(
-                canvasPane.widthProperty().
-                        subtract(settingsGroup.getWidth()).
-                        subtract(2)
-        );
-        this.canvas.heightProperty().bind(
-                canvasPane.heightProperty().
-                        subtract(2)
-        );
-
-        HBox root = new HBox();
-        root.getChildren().addAll(canvasPane, settingsGroup);
-        HBox.setHgrow(canvasPane, Priority.ALWAYS);
-
-        primaryStage.setScene(new Scene(root));
-        primaryStage.show();
+        return settingsGroup;
     }
 
     private void subscribeOnGameChanges() {
         this.gameSubscription = this.game.start().
-                subscribe(aLong ->
-                        Platform.runLater(() -> redraw(this.canvas.getGraphicsContext2D()))
-                );
+                subscribe(tick -> Platform.runLater(this::redraw));
     }
 
     private void clearRowsUnderCursor() {
@@ -142,13 +152,14 @@ public class MainForm extends Application {
         this.columnUnderCursor = null;
     }
 
-    private void redraw(GraphicsContext gc) {
+    private void redraw() {
+        GraphicsContext gc = this.canvas.getGraphicsContext2D();
         gc.setFill(Color.GRAY);
         gc.fillRect(0, 0, this.canvas.getWidth(), this.canvas.getHeight());
 
         for (int i = 0; i < getFieldHeight(); i++) {
             for (int j = 0; j < getFieldWidth(); j++) {
-                drawCalculatedCell(gc, i, j);
+                drawCalculatedCell(i, j);
             }
         }
 
@@ -162,7 +173,8 @@ public class MainForm extends Application {
         }
     }
 
-    private void drawCalculatedCell(GraphicsContext gc, int row, int column) {
+    private void drawCalculatedCell(int row, int column) {
+        GraphicsContext gc = this.canvas.getGraphicsContext2D();
         boolean isAlive = this.game.getCell(row, column);
         gc.setFill(isAlive ? Color.DARKGREEN : Color.SANDYBROWN);
         drawCell(gc, row, column);
