@@ -26,6 +26,11 @@
             <artifactId>junit</artifactId>
             <version>4.11</version>
         </dependency>
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>RELEASE</version>
+        </dependency>
     </dependencies>
 
 </project>

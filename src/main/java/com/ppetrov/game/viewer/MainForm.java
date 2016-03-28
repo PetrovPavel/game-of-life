@@ -1,7 +1,6 @@
 package com.ppetrov.game.viewer;
 
 import com.ppetrov.game.model.Game;
-import com.ppetrov.game.model.IGameListener;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -20,12 +19,15 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import rx.Subscription;
 
-public class MainForm extends Application implements IGameListener {
+public class MainForm extends Application {
 
     private Canvas canvas;
 
     private Game game = new Game();
+
+    private Subscription gameSubscription;
 
     private Integer columnUnderCursor;
 
@@ -76,8 +78,7 @@ public class MainForm extends Application implements IGameListener {
             }
         });
 
-        this.game.addListener(this);
-        this.game.start();
+        subscribeOnGameChanges();
 
         Label widthLabel = new Label("Field width:");
         Spinner<Integer> widthSpinner = new Spinner<>(10, 150, getFieldWidth());
@@ -87,18 +88,18 @@ public class MainForm extends Application implements IGameListener {
         Button pauseResumeButton = new Button("Pause");
         pauseResumeButton.setMaxWidth(Integer.MAX_VALUE);
         pauseResumeButton.setOnAction(event -> {
-            if (this.game.isPause()) {
-                this.game.start();
+            if (this.gameSubscription.isUnsubscribed()) {
+                subscribeOnGameChanges();
                 pauseResumeButton.setText("Pause");
             } else {
-                this.game.pause();
+                this.gameSubscription.unsubscribe();
                 pauseResumeButton.setText("Resume");
             }
         });
 
-        Button applySettingsButton = new Button("Restart");
-        applySettingsButton.setMaxWidth(Integer.MAX_VALUE);
-        applySettingsButton.setOnAction(event -> {
+        Button restartButton = new Button("Restart");
+        restartButton.setMaxWidth(Integer.MAX_VALUE);
+        restartButton.setOnAction(event -> {
             this.game.startNewMap(widthSpinner.getValue(), heightSpinner.getValue());
             redraw(gc);
         });
@@ -107,7 +108,7 @@ public class MainForm extends Application implements IGameListener {
                 widthLabel, widthSpinner,
                 heightLabel, heightSpinner,
                 pauseResumeButton,
-                applySettingsButton
+                restartButton
         );
         settingsGroup.setStyle("-fx-background-color:transparent;");
 
@@ -129,16 +130,16 @@ public class MainForm extends Application implements IGameListener {
         primaryStage.show();
     }
 
+    private void subscribeOnGameChanges() {
+        this.gameSubscription = this.game.start().
+                subscribe(aLong ->
+                        Platform.runLater(() -> redraw(this.canvas.getGraphicsContext2D()))
+                );
+    }
+
     private void clearRowsUnderCursor() {
         this.rowUnderCursor = null;
         this.columnUnderCursor = null;
-    }
-
-    @Override
-    public void stop() throws Exception {
-        this.game.removeListener(this);
-        this.game.stop();
-        super.stop();
     }
 
     private void redraw(GraphicsContext gc) {
@@ -230,11 +231,6 @@ public class MainForm extends Application implements IGameListener {
 
     private int getFieldHeight() {
         return this.game.getHeight();
-    }
-
-    @Override
-    public void onGameStepPerformed() {
-        Platform.runLater(() -> redraw(this.canvas.getGraphicsContext2D()));
     }
 
 }
