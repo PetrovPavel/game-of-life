@@ -8,6 +8,8 @@ public class Game {
 
     private Map map = new Map(50, 50);
 
+    private int speed = 500;
+
     public int getWidth() {
         return this.map.getWidth();
     }
@@ -28,9 +30,13 @@ public class Game {
         this.map = new Map(width, height);
     }
 
+    public void setSpeed(int period) {
+        this.speed = period;
+    }
+
     public Observable<Long> start() {
         return Observable.
-                interval(0, 1, TimeUnit.SECONDS).
+                interval(0, this.speed, TimeUnit.MILLISECONDS).
                 doOnEach(tick -> this.map.nextState());
     }
 

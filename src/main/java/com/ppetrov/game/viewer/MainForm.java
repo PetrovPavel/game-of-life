@@ -8,10 +8,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Spinner;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
@@ -20,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import rx.Subscription;
+import rx.observables.JavaFxObservable;
 
 public class MainForm extends Application {
 
@@ -50,7 +48,7 @@ public class MainForm extends Application {
                         subtract(2)
         );
 
-        subscribeOnGameChanges();
+        reSubscribeOnGameChanges();
 
         HBox root = new HBox();
         root.getChildren().addAll(canvasPane, settingsGroup);
@@ -113,11 +111,23 @@ public class MainForm extends Application {
         Label heightLabel = new Label("Field height:");
         Spinner<Integer> heightSpinner = new Spinner<>(10, 150, getFieldHeight());
 
+        Label speedLabel = new Label("Speed:");
+        Slider speedSlider = new Slider(-1000, -100, -600);
+        speedSlider.setShowTickMarks(true);
+        speedSlider.setMajorTickUnit(100);
+        speedSlider.setBlockIncrement(100);
+        JavaFxObservable.fromObservableValueChanges(speedSlider.valueProperty()).
+                map(change -> Math.abs(change.getNewVal().intValue())).
+                subscribe(speed -> {
+                    this.game.setSpeed(speed);
+                    reSubscribeOnGameChanges();
+                });
+
         Button pauseResumeButton = new Button("Pause");
         pauseResumeButton.setMaxWidth(Integer.MAX_VALUE);
         pauseResumeButton.setOnAction(event -> {
             if (this.gameSubscription.isUnsubscribed()) {
-                subscribeOnGameChanges();
+                reSubscribeOnGameChanges();
                 pauseResumeButton.setText("Pause");
             } else {
                 this.gameSubscription.unsubscribe();
@@ -135,6 +145,7 @@ public class MainForm extends Application {
         VBox settingsGroup = new VBox(
                 widthLabel, widthSpinner,
                 heightLabel, heightSpinner,
+                speedLabel, speedSlider,
                 pauseResumeButton,
                 restartButton
         );
@@ -142,7 +153,10 @@ public class MainForm extends Application {
         return settingsGroup;
     }
 
-    private void subscribeOnGameChanges() {
+    private void reSubscribeOnGameChanges() {
+        if (this.gameSubscription != null && !this.gameSubscription.isUnsubscribed()) {
+            this.gameSubscription.unsubscribe();
+        }
         this.gameSubscription = this.game.start().
                 subscribe(tick -> Platform.runLater(this::redraw));
     }
