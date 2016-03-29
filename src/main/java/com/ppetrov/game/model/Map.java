@@ -2,17 +2,19 @@ package com.ppetrov.game.model;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Map {
 
-    private boolean[][] field;
+    private Boolean[][] field;
 
-    public Map(boolean[][] field) {
+    public Map(Boolean[][] field) {
         this.field = deepArrayCopy(field);
     }
 
     public Map(int width, int height) {
-        this.field = new boolean[height][width];
+        this.field = new Boolean[height][width];
         fillRandomly();
     }
 
@@ -28,18 +30,13 @@ public class Map {
     }
 
     public boolean isEmpty() {
-        for (boolean[] row : this.field) {
-            for (boolean cell : row) {
-                if (cell) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return Stream.of(this.field).
+                flatMap(Stream::of).
+                noneMatch(Boolean::booleanValue);
     }
 
     public void nextState() {
-        boolean[][] prevStateField = deepArrayCopy(this.field);
+        Boolean[][] prevStateField = deepArrayCopy(this.field);
 
         for (int i = 0; i < prevStateField.length; i++) {
             for (int j = 0; j < prevStateField[i].length; j++) {
@@ -64,14 +61,14 @@ public class Map {
         this.field[row][column] = value;
     }
 
-    private boolean getCell(boolean[][] field, int row, int column) {
+    private boolean getCell(Boolean[][] field, int row, int column) {
         row = fixRow(row);
         column = fixColumn(row, column);
 
         return field[row][column];
     }
 
-    public boolean[][] getField() {
+    public Boolean[][] getField() {
         return deepArrayCopy(this.field);
     }
 
@@ -84,59 +81,40 @@ public class Map {
         }
     }
 
-    private int countOfAliveNeighbours(boolean[][] field, int row, int column) {
-        int count = 0;
+    private int countOfAliveNeighbours(Boolean[][] field, int row, int column) {
+        return IntStream.rangeClosed(row - 1, row + 1).
+                mapToLong(i -> IntStream.rangeClosed(column - 1, column + 1).
+                        filter(j -> isNeighbour(field, row, column, i, j)).
+                        count()).
+                mapToInt(i -> Math.toIntExact(i)).sum();
+    }
 
-        if (getCell(field, row - 1, column - 1)) {
-            count++;
-        }
-        if (getCell(field, row - 1, column)) {
-            count++;
-        }
-        if (getCell(field, row - 1, column + 1)) {
-            count++;
-        }
-        if (getCell(field, row, column - 1)) {
-            count++;
-        }
-        if (getCell(field, row, column + 1)) {
-            count++;
-        }
-        if (getCell(field, row + 1, column - 1)) {
-            count++;
-        }
-        if (getCell(field, row + 1, column)) {
-            count++;
-        }
-        if (getCell(field, row + 1, column + 1)) {
-            count++;
-        }
-
-        return count;
+    private boolean isNeighbour(Boolean[][] field, int row, int column, int i, int j) {
+        return !(i == row && j == column) && getCell(field, i, j);
     }
 
     private int fixRow(int row) {
-        if (row < 0) {
+        if (row == -1) {
             row = this.field.length - 1;
         }
-        if (row > this.field.length - 1) {
+        if (row == this.field.length) {
             row = 0;
         }
         return row;
     }
 
     private int fixColumn(int row, int column) {
-        if (column < 0) {
+        if (column == -1) {
             column = this.field[row].length - 1;
         }
-        if (column > this.field[row].length - 1) {
+        if (column == this.field[row].length) {
             column = 0;
         }
         return column;
     }
 
-    private boolean[][] deepArrayCopy(boolean[][] source) {
-        boolean[][] copy = new boolean[source.length][];
+    private Boolean[][] deepArrayCopy(Boolean[][] source) {
+        Boolean[][] copy = new Boolean[source.length][];
         for (int i = 0; i < source.length; i++) {
             copy[i] = Arrays.copyOf(source[i], source[i].length);
         }

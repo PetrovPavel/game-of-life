@@ -8,15 +8,15 @@ public class MapTest {
 
     @Test
     public void testIsEmpty() throws Exception {
-        Map map = new Map(new boolean[][]{{true, false}, {false, false}});
+        Map map = new Map(new Boolean[][]{{true, false}, {false, false}});
         assertFalse(map.isEmpty());
-        map = new Map(new boolean[][]{{false, false}, {false, false}});
+        map = new Map(new Boolean[][]{{false, false}, {false, false}});
         assertTrue(map.isEmpty());
     }
 
     @Test
     public void testNextState() throws Exception {
-        boolean[][] blockField = new boolean[][]{
+        Boolean[][] blockField = new Boolean[][]{
                 {false, false, false, false},
                 {false, true, true, false},
                 {false, true, true, false},
@@ -26,14 +26,14 @@ public class MapTest {
         block.nextState();
         assertArrayEquals(blockField, block.getField());
 
-        boolean[][] blinkerField = new boolean[][]{
+        Boolean[][] blinkerField = new Boolean[][]{
                 {false, false, false, false, false},
                 {false, false, false, false, false},
                 {false, true, true, true, false},
                 {false, false, false, false, false},
                 {false, false, false, false, false}
         };
-        boolean[][] blinkerFieldNextStep = new boolean[][]{
+        Boolean[][] blinkerFieldNextStep = new Boolean[][]{
                 {false, false, false, false, false},
                 {false, false, true, false, false},
                 {false, false, true, false, false},
@@ -50,14 +50,14 @@ public class MapTest {
 
     @Test
     public void testGetCell() throws Exception {
-        Map map = new Map(new boolean[][]{{true, false}, {false, true}});
+        Map map = new Map(new Boolean[][]{{true, false}, {false, true}});
         assertTrue(map.getCell(-1, -1));
         assertTrue(map.getCell(2, 2));
     }
 
     @Test
     public void testSetCell() throws Exception {
-        Map map = new Map(new boolean[][]{{true, false}, {false, true}});
+        Map map = new Map(new Boolean[][]{{true, false}, {false, true}});
         map.setCell(0, 0, false);
         map.setCell(1, 1, false);
         assertFalse(map.getCell(0, 0));
