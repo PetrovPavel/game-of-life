@@ -2,8 +2,6 @@ package com.ppetrov.game.model;
 
 import java.util.Arrays;
 import java.util.Random;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class Map {
 
@@ -29,29 +27,11 @@ public class Map {
         return this.field.length;
     }
 
-    public boolean isEmpty() {
-        return Stream.of(this.field).
-                flatMap(Stream::of).
-                noneMatch(Boolean::booleanValue);
-    }
-
-    public void nextState() {
-        Boolean[][] prevStateField = deepArrayCopy(this.field);
-
-        for (int i = 0; i < prevStateField.length; i++) {
-            for (int j = 0; j < prevStateField[i].length; j++) {
-                int aliveNeighbours = countOfAliveNeighbours(prevStateField, i, j);
-                if (aliveNeighbours < 2 || 3 < aliveNeighbours) {
-                    setCell(i, j, false);
-                } else if (aliveNeighbours == 3 && !this.field[i][j]) {
-                    setCell(i, j, true);
-                }
-            }
-        }
-    }
-
     public boolean getCell(int row, int column) {
-        return getCell(this.field, row, column);
+        row = fixRow(row);
+        column = fixColumn(row, column);
+
+        return this.field[row][column];
     }
 
     public void setCell(int row, int column, boolean value) {
@@ -59,13 +39,6 @@ public class Map {
         column = fixColumn(row, column);
 
         this.field[row][column] = value;
-    }
-
-    private boolean getCell(Boolean[][] field, int row, int column) {
-        row = fixRow(row);
-        column = fixColumn(row, column);
-
-        return field[row][column];
     }
 
     public Boolean[][] getField() {
@@ -79,18 +52,6 @@ public class Map {
                 this.field[i][j] = random.nextDouble() < 0.25;
             }
         }
-    }
-
-    private int countOfAliveNeighbours(Boolean[][] field, int row, int column) {
-        return IntStream.rangeClosed(row - 1, row + 1).
-                mapToLong(i -> IntStream.rangeClosed(column - 1, column + 1).
-                        filter(j -> isNeighbour(field, row, column, i, j)).
-                        count()).
-                mapToInt(i -> Math.toIntExact(i)).sum();
-    }
-
-    private boolean isNeighbour(Boolean[][] field, int row, int column, int i, int j) {
-        return !(i == row && j == column) && getCell(field, i, j);
     }
 
     private int fixRow(int row) {

@@ -1,5 +1,6 @@
 package com.ppetrov.game.viewer;
 
+import com.ppetrov.game.model.DefaultRules;
 import com.ppetrov.game.model.Game;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -23,7 +24,7 @@ public class MainForm extends Application {
 
     private Canvas canvas;
 
-    private Game game = new Game();
+    private Game game = new Game(new DefaultRules());
 
     private Subscription gameSubscription;
 

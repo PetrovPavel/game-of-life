@@ -7,8 +7,13 @@ import java.util.concurrent.TimeUnit;
 public class Game {
 
     private Map map = new Map(50, 50);
+    private IRules rules;
 
     private int speed = 500;
+
+    public Game(IRules rules) {
+        this.rules = rules;
+    }
 
     public int getWidth() {
         return this.map.getWidth();
@@ -34,10 +39,9 @@ public class Game {
         this.speed = period;
     }
 
-    public Observable<Long> start() {
-        return Observable.
-                interval(0, this.speed, TimeUnit.MILLISECONDS).
-                doOnEach(tick -> this.map.nextState());
+    public Observable<Map> start() {
+        return Observable.interval(0, this.speed, TimeUnit.MILLISECONDS).
+                map(tick -> this.map = this.rules.nextState(this.map));
     }
 
 }
