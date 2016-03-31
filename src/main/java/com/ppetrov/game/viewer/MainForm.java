@@ -109,8 +109,6 @@ public class MainForm extends Application {
     private VBox createSettingsPane() {
         Label widthLabel = new Label("Field width:");
         Spinner<Integer> widthSpinner = new Spinner<>(10, 150, getFieldWidth());
-        Label heightLabel = new Label("Field height:");
-        Spinner<Integer> heightSpinner = new Spinner<>(10, 150, getFieldHeight());
 
         Label speedLabel = new Label("Speed:");
         Slider speedSlider = new Slider(-1000, -100, -600);
@@ -139,13 +137,15 @@ public class MainForm extends Application {
         Button restartButton = new Button("Restart");
         restartButton.setMaxWidth(Integer.MAX_VALUE);
         restartButton.setOnAction(event -> {
-            this.game.startNewMap(widthSpinner.getValue(), heightSpinner.getValue());
+            this.game.startNewMap(
+                    (int) (this.canvas.getWidth() / getCellSize()),
+                    (int) (this.canvas.getHeight() / getCellSize())
+            );
             redraw();
         });
 
         VBox settingsGroup = new VBox(
                 widthLabel, widthSpinner,
-                heightLabel, heightSpinner,
                 speedLabel, speedSlider,
                 pauseResumeButton,
                 restartButton
