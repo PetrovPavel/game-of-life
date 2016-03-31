@@ -28,11 +28,9 @@ public class MainForm extends Application {
     private Canvas canvas;
 
     private Game game = new Game(new DefaultRules());
-
     private Subscription gameSubscription;
 
     private Integer columnUnderCursor;
-
     private Integer rowUnderCursor;
 
     @Override
@@ -52,7 +50,7 @@ public class MainForm extends Application {
                         subtract(2)
         );
 
-        reSubscribeOnGameChanges();
+        reSubscribeOnGame();
 
         HBox root = new HBox();
         root.getChildren().addAll(canvasPane, settingsGroup);
@@ -119,14 +117,16 @@ public class MainForm extends Application {
                 map(change -> Math.abs(change.getNewVal().intValue())).
                 subscribe(speed -> {
                     this.game.setSpeed(speed);
-                    reSubscribeOnGameChanges();
+                    if (isSubscribedOnGame()) {
+                        reSubscribeOnGame();
+                    }
                 });
 
         Button pauseResumeButton = new Button("Pause");
         pauseResumeButton.setMaxWidth(Integer.MAX_VALUE);
         pauseResumeButton.setOnAction(event -> {
             if (this.gameSubscription.isUnsubscribed()) {
-                reSubscribeOnGameChanges();
+                reSubscribeOnGame();
                 pauseResumeButton.setText("Pause");
             } else {
                 this.gameSubscription.unsubscribe();
@@ -153,12 +153,24 @@ public class MainForm extends Application {
         return settingsGroup;
     }
 
-    private void reSubscribeOnGameChanges() {
-        if (this.gameSubscription != null && !this.gameSubscription.isUnsubscribed()) {
-            this.gameSubscription.unsubscribe();
-        }
+    private void reSubscribeOnGame() {
+        unsubscribeFromGame();
+        subscribeOnGame();
+    }
+
+    private void subscribeOnGame() {
         this.gameSubscription = this.game.start().
                 subscribe(tick -> Platform.runLater(this::redraw));
+    }
+
+    private void unsubscribeFromGame() {
+        if (isSubscribedOnGame()) {
+            this.gameSubscription.unsubscribe();
+        }
+    }
+
+    private boolean isSubscribedOnGame() {
+        return this.gameSubscription != null && !this.gameSubscription.isUnsubscribed();
     }
 
     private void clearRowsUnderCursor() {
