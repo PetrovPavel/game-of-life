@@ -9,7 +9,10 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
@@ -107,9 +110,6 @@ public class MainForm extends Application {
     }
 
     private VBox createSettingsPane() {
-        Label widthLabel = new Label("Field width:");
-        Spinner<Integer> widthSpinner = new Spinner<>(10, 150, getFieldWidth());
-
         Label speedLabel = new Label("Speed:");
         Slider speedSlider = new Slider(-1000, -100, -600);
         speedSlider.setShowTickMarks(true);
@@ -145,7 +145,6 @@ public class MainForm extends Application {
         });
 
         VBox settingsGroup = new VBox(
-                widthLabel, widthSpinner,
                 speedLabel, speedSlider,
                 pauseResumeButton,
                 restartButton
