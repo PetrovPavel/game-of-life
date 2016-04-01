@@ -41,7 +41,11 @@ public class Game {
 
     public Observable<Map> start() {
         return Observable.interval(0, this.speed, TimeUnit.MILLISECONDS).
-                map(tick -> this.map = this.rules.nextState(this.map));
+                map(tick -> nextStep());
+    }
+
+    public Map nextStep() {
+        return this.map = this.rules.nextState(this.map);
     }
 
 }
