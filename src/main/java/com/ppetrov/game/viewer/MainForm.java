@@ -50,7 +50,7 @@ public class MainForm extends Application {
                         subtract(2)
         );
 
-        reSubscribeOnGame();
+        subscribeOnGame();
 
         HBox root = new HBox();
         root.getChildren().addAll(canvasPane, settingsGroup);
@@ -168,7 +168,7 @@ public class MainForm extends Application {
 
     private void subscribeOnGame() {
         this.gameSubscription = this.game.start().
-                subscribe(tick -> Platform.runLater(this::redraw));
+                subscribe(map -> Platform.runLater(this::redraw));
     }
 
     private void unsubscribeFromGame() {

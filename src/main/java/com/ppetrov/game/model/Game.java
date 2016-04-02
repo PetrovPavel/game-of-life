@@ -6,13 +6,14 @@ import java.util.concurrent.TimeUnit;
 
 public class Game {
 
-    private Map map = new Map(50, 50);
+    private Map map;
     private IRules rules;
-
-    private int speed = 500;
+    private int speed;
 
     public Game(IRules rules) {
+        this.map = new Map(50, 50);
         this.rules = rules;
+        this.speed = 500;
     }
 
     public int getWidth() {
