@@ -2,6 +2,7 @@ package com.ppetrov.game.viewer;
 
 import com.ppetrov.game.model.DefaultRules;
 import com.ppetrov.game.model.Game;
+import com.ppetrov.game.model.Map;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -20,18 +21,27 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import rx.Observable;
 import rx.Subscription;
 import rx.observables.JavaFxObservable;
 
 public class MainForm extends Application {
 
     private Canvas canvas;
+    private int speed;
 
-    private Game game = new Game(new DefaultRules());
+    private Game game;
+    private Map map;
     private Subscription gameSubscription;
 
     private Integer columnUnderCursor;
     private Integer rowUnderCursor;
+
+    public MainForm() {
+        this.game = new Game(new DefaultRules());
+        this.speed = 500;
+        this.map = new Map(50, 50);
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -39,6 +49,8 @@ public class MainForm extends Application {
 
         ScrollPane canvasPane = createCanvasPane(primaryStage);
         VBox settingsGroup = createSettingsPane();
+
+        subscribeOnGame();
 
         this.canvas.widthProperty().bind(
                 canvasPane.widthProperty().
@@ -86,10 +98,10 @@ public class MainForm extends Application {
         this.canvas.setOnMouseEntered(canvasMouseEventHandler);
         this.canvas.setOnMouseMoved(canvasMouseEventHandler);
         this.canvas.setOnMouseExited(event -> {
-            clearRowsUnderCursor();
-            redraw();
             primaryStage.getScene().setCursor(Cursor.DEFAULT);
+            clearRowsUnderCursor();
         });
+
         this.canvas.setOnMouseClicked(event -> {
             Integer row = getCellRowFromCanvas(event.getY());
             Integer column = getCellColumnFromCanvas(event.getX());
@@ -98,7 +110,8 @@ public class MainForm extends Application {
                 boolean isPrimary = MouseButton.PRIMARY.equals(mouseButton);
                 boolean isSecondary = MouseButton.SECONDARY.equals(mouseButton);
                 if (isPrimary || isSecondary) {
-                    this.game.setCell(row, column, isPrimary);
+                    this.map.setCell(row, column, isPrimary);
+                    reSubscribeOnGame();
                     redraw();
                 }
             }
@@ -114,74 +127,67 @@ public class MainForm extends Application {
         JavaFxObservable.fromObservableValueChanges(speedSlider.valueProperty()).
                 map(change -> Math.abs(change.getNewVal().intValue())).
                 subscribe(speed -> {
-                    this.game.setSpeed(speed);
-                    if (isSubscribedOnGame()) {
-                        reSubscribeOnGame();
-                    }
+                    this.speed = speed;
+                    reSubscribeOnGame();
                 });
 
-        Button pauseResumeButton = new Button("Start");
+        Button pauseResumeButton = new Button("Pause");
         pauseResumeButton.setMaxWidth(Integer.MAX_VALUE);
         pauseResumeButton.setOnAction(event -> {
             if (isSubscribedOnGame()) {
                 unsubscribeFromGame();
                 pauseResumeButton.setText("Resume");
             } else {
-                reSubscribeOnGame();
+                subscribeOnGame();
                 pauseResumeButton.setText("Pause");
             }
-        });
-
-        Button nextStepButton = new Button("Step");
-        nextStepButton.setMaxWidth(Integer.MAX_VALUE);
-        nextStepButton.setOnAction(event -> {
-            this.game.nextStep();
-            redraw();
-        });
-
-        Button fillButton = new Button("Fill");
-        fillButton.setMaxWidth(Integer.MAX_VALUE);
-        fillButton.setOnAction(event -> {
-            this.game.fillMap();
-            redraw();
-        });
-
-        Button clearButton = new Button("Clear");
-        clearButton.setMaxWidth(Integer.MAX_VALUE);
-        clearButton.setOnAction(event -> {
-            this.game.clearMap();
-            redraw();
         });
 
         Button restartButton = new Button("Restart");
         restartButton.setMaxWidth(Integer.MAX_VALUE);
         restartButton.setOnAction(event -> {
-            this.game.startNewMap(
+            this.map = new Map(
                     (int) (this.canvas.getWidth() / getCellSize()),
                     (int) (this.canvas.getHeight() / getCellSize())
             );
+            reSubscribeOnGame();
             redraw();
         });
 
         VBox settingsGroup = new VBox(
                 speedLabel, speedSlider,
                 pauseResumeButton,
-                nextStepButton,
-                fillButton, clearButton,
                 restartButton
         );
         settingsGroup.setStyle("-fx-background-color:transparent;");
         return settingsGroup;
     }
 
+    private Observable<Map> startGame() {
+        return this.game.startGame(this.map, this.speed);
+    }
+
     private void reSubscribeOnGame() {
-        unsubscribeFromGame();
-        subscribeOnGame();
+        if (isSubscribedOnGame()) {
+            reSubscribeOnGame(startGame());
+        }
     }
 
     private void subscribeOnGame() {
-        this.gameSubscription = this.game.start().
-                subscribe(map -> Platform.runLater(this::redraw));
+        subscribeOnGame(startGame());
+    }
+
+    private void reSubscribeOnGame(Observable<Map> observable) {
+        unsubscribeFromGame();
+        subscribeOnGame(observable);
+    }
+
+    private void subscribeOnGame(Observable<Map> observable) {
+        this.gameSubscription = observable.
+                subscribe(map -> {
+                    this.map = map;
+                    Platform.runLater(this::redraw);
+                });
     }
 
     private void unsubscribeFromGame() {
@@ -197,6 +203,7 @@ public class MainForm extends Application {
     private void clearRowsUnderCursor() {
         this.rowUnderCursor = null;
         this.columnUnderCursor = null;
+        redraw();
     }
 
     private void redraw() {
@@ -222,7 +229,7 @@ public class MainForm extends Application {
 
     private void drawCalculatedCell(int row, int column) {
         GraphicsContext gc = this.canvas.getGraphicsContext2D();
-        boolean isAlive = this.game.getCell(row, column);
+        boolean isAlive = this.map.getCell(row, column);
         gc.setFill(isAlive ? Color.DARKGREEN : Color.SANDYBROWN);
         drawCell(gc, row, column);
     }
@@ -285,11 +292,11 @@ public class MainForm extends Application {
     }
 
     private int getFieldWidth() {
-        return this.game.getWidth();
+        return this.map.getWidth();
     }
 
     private int getFieldHeight() {
-        return this.game.getHeight();
+        return this.map.getHeight();
     }
 
 }

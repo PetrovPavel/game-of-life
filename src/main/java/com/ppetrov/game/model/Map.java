@@ -2,7 +2,6 @@ package com.ppetrov.game.model;
 
 import java.util.Arrays;
 import java.util.Random;
-import java.util.stream.Stream;
 
 public class Map {
 
@@ -14,11 +13,7 @@ public class Map {
 
     public Map(int width, int height) {
         this.field = new Boolean[height][width];
-        clear();
-    }
-
-    public void clear() {
-        Stream.of(this.field).forEach(row -> Arrays.fill(row, false));
+        fillRandomly();
     }
 
     public int getWidth() {
