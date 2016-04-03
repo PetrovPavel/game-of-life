@@ -50,8 +50,6 @@ public class MainForm extends Application {
                         subtract(2)
         );
 
-        subscribeOnGame();
-
         HBox root = new HBox();
         root.getChildren().addAll(canvasPane, settingsGroup);
         HBox.setHgrow(canvasPane, Priority.ALWAYS);
@@ -122,15 +120,15 @@ public class MainForm extends Application {
                     }
                 });
 
-        Button pauseResumeButton = new Button("Pause");
+        Button pauseResumeButton = new Button("Start");
         pauseResumeButton.setMaxWidth(Integer.MAX_VALUE);
         pauseResumeButton.setOnAction(event -> {
-            if (this.gameSubscription.isUnsubscribed()) {
+            if (isSubscribedOnGame()) {
+                unsubscribeFromGame();
+                pauseResumeButton.setText("Resume");
+            } else {
                 reSubscribeOnGame();
                 pauseResumeButton.setText("Pause");
-            } else {
-                this.gameSubscription.unsubscribe();
-                pauseResumeButton.setText("Resume");
             }
         });
 
@@ -138,6 +136,20 @@ public class MainForm extends Application {
         nextStepButton.setMaxWidth(Integer.MAX_VALUE);
         nextStepButton.setOnAction(event -> {
             this.game.nextStep();
+            redraw();
+        });
+
+        Button fillButton = new Button("Fill");
+        fillButton.setMaxWidth(Integer.MAX_VALUE);
+        fillButton.setOnAction(event -> {
+            this.game.fillMap();
+            redraw();
+        });
+
+        Button clearButton = new Button("Clear");
+        clearButton.setMaxWidth(Integer.MAX_VALUE);
+        clearButton.setOnAction(event -> {
+            this.game.clearMap();
             redraw();
         });
 
@@ -155,6 +167,7 @@ public class MainForm extends Application {
                 speedLabel, speedSlider,
                 pauseResumeButton,
                 nextStepButton,
+                fillButton, clearButton,
                 restartButton
         );
         settingsGroup.setStyle("-fx-background-color:transparent;");

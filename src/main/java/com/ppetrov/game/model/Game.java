@@ -32,6 +32,14 @@ public class Game {
         this.map.setCell(row, column, isAlive);
     }
 
+    public void fillMap() {
+        this.map.fillRandomly();
+    }
+
+    public void clearMap() {
+        this.map.clear();
+    }
+
     public void startNewMap(int width, int height) {
         this.map = new Map(width, height);
     }
