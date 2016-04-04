@@ -143,6 +143,10 @@ public class MainForm extends Application {
             }
         });
 
+        Button nextStepButton = new Button("Next Step");
+        nextStepButton.setMaxWidth(Integer.MAX_VALUE);
+        nextStepButton.setOnAction(event -> nextStep());
+
         Button restartButton = new Button("Restart");
         restartButton.setMaxWidth(Integer.MAX_VALUE);
         restartButton.setOnAction(event -> {
@@ -157,6 +161,7 @@ public class MainForm extends Application {
         VBox settingsGroup = new VBox(
                 speedLabel, speedSlider,
                 pauseResumeButton,
+                nextStepButton,
                 restartButton
         );
         settingsGroup.setStyle("-fx-background-color:transparent;");
@@ -184,6 +189,14 @@ public class MainForm extends Application {
 
     private void subscribeOnGame(Observable<Map> observable) {
         this.gameSubscription = observable.
+                subscribe(map -> {
+                    this.map = map;
+                    Platform.runLater(this::redraw);
+                });
+    }
+
+    private void nextStep() {
+        startGame().take(2).
                 subscribe(map -> {
                     this.map = map;
                     Platform.runLater(this::redraw);
