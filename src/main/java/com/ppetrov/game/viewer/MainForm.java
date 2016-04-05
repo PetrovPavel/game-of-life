@@ -104,18 +104,19 @@ public class MainForm extends Application {
             clearRowsUnderCursor();
         });
 
-        this.canvas.setOnMouseClicked(event -> {
-            Integer row = getCellRowFromCanvas(event.getY());
-            Integer column = getCellColumnFromCanvas(event.getX());
-            if (row != null && column != null) {
+        this.canvas.setOnMouseDragged(event -> {
+            this.rowUnderCursor = getCellRowFromCanvas(event.getY());
+            this.columnUnderCursor = getCellColumnFromCanvas(event.getX());
+            if (this.rowUnderCursor != null && this.columnUnderCursor != null) {
                 MouseButton mouseButton = event.getButton();
                 boolean isPrimary = MouseButton.PRIMARY.equals(mouseButton);
                 boolean isSecondary = MouseButton.SECONDARY.equals(mouseButton);
                 if (isPrimary || isSecondary) {
-                    this.map.setCell(row, column, isPrimary);
-                    reSubscribeOnGame();
+                    this.map.setCell(this.rowUnderCursor, this.columnUnderCursor, isPrimary);
                     redraw();
                 }
+            } else {
+                clearRowsUnderCursor();
             }
         });
     }
