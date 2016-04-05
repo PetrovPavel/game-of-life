@@ -6,17 +6,17 @@ import com.ppetrov.game.model.Map;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Slider;
+import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -24,6 +24,7 @@ import javafx.stage.Stage;
 import rx.Observable;
 import rx.Subscription;
 import rx.observables.JavaFxObservable;
+import rx.subscribers.JavaFxSubscriber;
 
 public class MainForm extends Application {
 
@@ -48,7 +49,7 @@ public class MainForm extends Application {
         primaryStage.setTitle("Game of Life");
 
         ScrollPane canvasPane = createCanvasPane(primaryStage);
-        VBox settingsGroup = createSettingsPane();
+        Pane settingsGroup = createSettingsPane();
 
         subscribeOnGame();
 
@@ -62,12 +63,13 @@ public class MainForm extends Application {
                         subtract(2)
         );
 
-        HBox root = new HBox();
+        Pane root = new VBox();
         root.getChildren().addAll(canvasPane, settingsGroup);
-        HBox.setHgrow(canvasPane, Priority.ALWAYS);
+        VBox.setVgrow(canvasPane, Priority.ALWAYS);
 
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
+        root.requestFocus();
     }
 
     private ScrollPane createCanvasPane(Stage primaryStage) {
@@ -118,37 +120,51 @@ public class MainForm extends Application {
         });
     }
 
-    private VBox createSettingsPane() {
-        Label speedLabel = new Label("Speed:");
-        Slider speedSlider = new Slider(-1000, -100, -600);
-        speedSlider.setShowTickMarks(true);
-        speedSlider.setMajorTickUnit(100);
-        speedSlider.setBlockIncrement(100);
-        JavaFxObservable.fromObservableValueChanges(speedSlider.valueProperty()).
-                map(change -> Math.abs(change.getNewVal().intValue())).
-                subscribe(speed -> {
-                    this.speed = speed;
-                    reSubscribeOnGame();
-                });
+    private Pane createSettingsPane() {
+        ImageView pauseImageView = new ImageView("/pause.png");
+        ImageView resumeImageView = new ImageView("/resume.png");
 
-        Button pauseResumeButton = new Button("Pause");
-        pauseResumeButton.setMaxWidth(Integer.MAX_VALUE);
+        Button pauseResumeButton = new Button();
+        Tooltip pauseResumeTooltip = new Tooltip("Pause");
+        pauseResumeButton.setTooltip(pauseResumeTooltip);
+        pauseResumeButton.setGraphic(pauseImageView);
         pauseResumeButton.setOnAction(event -> {
             if (isSubscribedOnGame()) {
                 unsubscribeFromGame();
-                pauseResumeButton.setText("Resume");
+                pauseResumeTooltip.setText("Resume");
+                pauseResumeButton.setGraphic(resumeImageView);
             } else {
                 subscribeOnGame();
-                pauseResumeButton.setText("Pause");
+                pauseResumeTooltip.setText("Pause");
+                pauseResumeButton.setGraphic(pauseImageView);
             }
         });
 
-        Button nextStepButton = new Button("Next Step");
-        nextStepButton.setMaxWidth(Integer.MAX_VALUE);
+        Label speedLabel = new Label();
+        Slider speedSlider = new Slider(-1000, -100, -500);
+        speedSlider.setShowTickMarks(true);
+        speedSlider.setMajorTickUnit(100);
+        speedSlider.setBlockIncrement(100);
+        speedSlider.setTooltip(new Tooltip("Speed"));
+        Observable<Integer> sliderProperty =
+                JavaFxObservable.fromObservableValue(speedSlider.valueProperty()).
+                        map(change -> Math.abs(change.intValue()));
+        sliderProperty.subscribe(speed -> {
+            this.speed = speed;
+            reSubscribeOnGame();
+        });
+        speedLabel.textProperty().bind(JavaFxSubscriber.toBinding(
+                sliderProperty.map(this::getSpeedInSecondsString)
+        ));
+
+        Button nextStepButton = new Button();
+        nextStepButton.setTooltip(new Tooltip("Next Step"));
+        nextStepButton.setGraphic(new ImageView("/step.png"));
         nextStepButton.setOnAction(event -> nextStep());
 
-        Button restartButton = new Button("Restart");
-        restartButton.setMaxWidth(Integer.MAX_VALUE);
+        Button restartButton = new Button();
+        restartButton.setTooltip(new Tooltip("Restart Game"));
+        restartButton.setGraphic(new ImageView("/restart.png"));
         restartButton.setOnAction(event -> {
             this.map = new Map(
                     (int) (this.canvas.getWidth() / getCellSize()),
@@ -158,14 +174,21 @@ public class MainForm extends Application {
             redraw();
         });
 
-        VBox settingsGroup = new VBox(
-                speedLabel, speedSlider,
+        ToolBar toolBar = new ToolBar(
                 pauseResumeButton,
-                nextStepButton,
+                speedLabel, speedSlider,
+                nextStepButton, new Separator(),
                 restartButton
         );
-        settingsGroup.setStyle("-fx-background-color:transparent;");
+
+        HBox settingsGroup = new HBox(toolBar);
+        settingsGroup.setAlignment(Pos.CENTER);
+        toolBar.setStyle("-fx-background-color:transparent;");
         return settingsGroup;
+    }
+
+    private String getSpeedInSecondsString(double speedInMillis) {
+        return String.format("%.2fs", speedInMillis / 1000);
     }
 
     private Observable<Map> startGame() {
