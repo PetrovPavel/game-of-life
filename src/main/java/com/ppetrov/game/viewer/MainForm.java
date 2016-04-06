@@ -178,7 +178,7 @@ public class MainForm extends Application {
         ToolBar toolBar = new ToolBar(
                 pauseResumeButton,
                 speedLabel, speedSlider,
-                nextStepButton, new Separator(),
+                nextStepButton,
                 restartButton
         );
 
