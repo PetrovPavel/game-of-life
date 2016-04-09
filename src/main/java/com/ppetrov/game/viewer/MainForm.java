@@ -5,16 +5,12 @@ import com.ppetrov.game.model.Game;
 import com.ppetrov.game.model.Map;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
@@ -28,15 +24,13 @@ import rx.subscribers.JavaFxSubscriber;
 
 public class MainForm extends Application {
 
-    private Canvas fieldCanvas;
     private int speed;
+
+    private FieldCanvas mainCanvas;
 
     private Game game;
     private Map map;
     private Subscription gameSubscription;
-
-    private Integer columnUnderCursor;
-    private Integer rowUnderCursor;
 
     private Canvas templateCanvas;
 
@@ -50,25 +44,27 @@ public class MainForm extends Application {
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Game of Life");
 
-        ScrollPane fieldPane = createFieldPane(primaryStage);
+        createMainCanvas(primaryStage);
         Pane settingsPane = createSettingsPane();
         Pane templatePane = createTemplatePane();
 
         subscribeOnGame();
 
-        this.fieldCanvas.widthProperty().bind(
-                fieldPane.widthProperty().
+        ScrollPane mainCanvasPane = this.mainCanvas.getPane();
+        Canvas canvas = this.mainCanvas.getCanvas();
+        canvas.widthProperty().bind(
+                mainCanvasPane.widthProperty().
                         subtract(settingsPane.getWidth()).
                         subtract(2)
         );
-        this.fieldCanvas.heightProperty().bind(
-                fieldPane.heightProperty().
+        canvas.heightProperty().bind(
+                mainCanvasPane.heightProperty().
                         subtract(2)
         );
 
         VBox leftPane = new VBox();
-        leftPane.getChildren().addAll(fieldPane, settingsPane);
-        VBox.setVgrow(fieldPane, Priority.ALWAYS);
+        leftPane.getChildren().addAll(mainCanvasPane, settingsPane);
+        VBox.setVgrow(mainCanvasPane, Priority.ALWAYS);
 
         Pane root = new HBox();
         root.getChildren().addAll(leftPane, templatePane);
@@ -79,53 +75,9 @@ public class MainForm extends Application {
         root.requestFocus();
     }
 
-    private ScrollPane createFieldPane(Stage primaryStage) {
-        ScrollPane fieldPane = new ScrollPane();
-        createFieldCanvas(primaryStage);
-
-        fieldPane.setContent(this.fieldCanvas);
-        fieldPane.setStyle("-fx-background-color:transparent;");
-        fieldPane.setPrefSize(500, 500);
-
-        return fieldPane;
-    }
-
-    private void createFieldCanvas(Stage primaryStage) {
-        this.fieldCanvas = new Canvas();
-        this.fieldCanvas.widthProperty().addListener(observable -> redrawField());
-        this.fieldCanvas.heightProperty().addListener(observable -> redrawField());
-
-        EventHandler<MouseEvent> canvasMouseEventHandler = event -> {
-            double x = event.getX();
-            double y = event.getY();
-            boolean inDrawingArea = isInDrawingArea(x, y);
-            primaryStage.getScene().setCursor(inDrawingArea ? Cursor.HAND : Cursor.DEFAULT);
-            this.rowUnderCursor = getCellRowFromCanvas(y);
-            this.columnUnderCursor = getCellColumnFromCanvas(x);
-            redrawField();
-        };
-        this.fieldCanvas.setOnMouseEntered(canvasMouseEventHandler);
-        this.fieldCanvas.setOnMouseMoved(canvasMouseEventHandler);
-        this.fieldCanvas.setOnMouseExited(event -> {
-            primaryStage.getScene().setCursor(Cursor.DEFAULT);
-            clearRowsUnderCursor();
-        });
-
-        this.fieldCanvas.setOnMouseDragged(event -> {
-            this.rowUnderCursor = getCellRowFromCanvas(event.getY());
-            this.columnUnderCursor = getCellColumnFromCanvas(event.getX());
-            if (this.rowUnderCursor != null && this.columnUnderCursor != null) {
-                MouseButton mouseButton = event.getButton();
-                boolean isPrimary = MouseButton.PRIMARY.equals(mouseButton);
-                boolean isSecondary = MouseButton.SECONDARY.equals(mouseButton);
-                if (isPrimary || isSecondary) {
-                    this.map.setCell(this.rowUnderCursor, this.columnUnderCursor, isPrimary);
-                    redrawField();
-                }
-            } else {
-                clearRowsUnderCursor();
-            }
-        });
+    private void createMainCanvas(Stage primaryStage) {
+        this.mainCanvas = new FieldCanvas(primaryStage);
+        this.mainCanvas.setMap(this.map);
     }
 
     private Pane createSettingsPane() {
@@ -174,12 +126,15 @@ public class MainForm extends Application {
         restartButton.setTooltip(new Tooltip("Restart Game"));
         restartButton.setGraphic(new ImageView("/restart.png"));
         restartButton.setOnAction(event -> {
+            Canvas canvas = this.mainCanvas.getCanvas();
+            double cellSize = this.mainCanvas.getCellSize();
             this.map = new Map(
-                    (int) (this.fieldCanvas.getWidth() / getCellSize()),
-                    (int) (this.fieldCanvas.getHeight() / getCellSize())
+                    (int) (canvas.getWidth() / cellSize),
+                    (int) (canvas.getHeight() / cellSize)
             );
+            this.mainCanvas.setMap(this.map);
             reSubscribeOnGame();
-            redrawField();
+            this.mainCanvas.redraw();
         });
 
         ToolBar toolBar = new ToolBar(
@@ -199,8 +154,8 @@ public class MainForm extends Application {
         Label templateLabel = new Label("Template:");
 
         this.templateCanvas = new Canvas(100, 100);
-        this.fieldCanvas.widthProperty().addListener(observable -> redrawTemplateCanvas());
-        this.fieldCanvas.heightProperty().addListener(observable -> redrawTemplateCanvas());
+        this.mainCanvas.getCanvas().widthProperty().addListener(observable -> redrawTemplateCanvas());
+        this.mainCanvas.getCanvas().heightProperty().addListener(observable -> redrawTemplateCanvas());
 
         VBox templatePane = new VBox();
         templatePane.getChildren().addAll(templateLabel, this.templateCanvas);
@@ -241,7 +196,8 @@ public class MainForm extends Application {
         this.gameSubscription = observable.
                 subscribe(map -> {
                     this.map = map;
-                    Platform.runLater(this::redrawField);
+                    this.mainCanvas.setMap(this.map);
+                    Platform.runLater(this.mainCanvas::redraw);
                 });
     }
 
@@ -249,7 +205,8 @@ public class MainForm extends Application {
         startGame().take(2).
                 subscribe(map -> {
                     this.map = map;
-                    Platform.runLater(this::redrawField);
+                    this.mainCanvas.setMap(this.map);
+                    Platform.runLater(this.mainCanvas::redraw);
                 });
     }
 
@@ -261,105 +218,6 @@ public class MainForm extends Application {
 
     private boolean isSubscribedOnGame() {
         return this.gameSubscription != null && !this.gameSubscription.isUnsubscribed();
-    }
-
-    private void clearRowsUnderCursor() {
-        this.rowUnderCursor = null;
-        this.columnUnderCursor = null;
-        redrawField();
-    }
-
-    private void redrawField() {
-        GraphicsContext gc = this.fieldCanvas.getGraphicsContext2D();
-        gc.setFill(Color.GRAY);
-        gc.fillRect(0, 0, this.fieldCanvas.getWidth(), this.fieldCanvas.getHeight());
-
-        for (int i = 0; i < getFieldHeight(); i++) {
-            for (int j = 0; j < getFieldWidth(); j++) {
-                drawCalculatedCell(i, j);
-            }
-        }
-
-        drawCellsUnderCursor(gc);
-    }
-
-    private void drawCellsUnderCursor(GraphicsContext gc) {
-        if (this.rowUnderCursor != null && this.columnUnderCursor != null) {
-            gc.setFill(new Color(1, 1, 1, 0.5));
-            drawCell(gc, this.rowUnderCursor, this.columnUnderCursor);
-        }
-    }
-
-    private void drawCalculatedCell(int row, int column) {
-        GraphicsContext gc = this.fieldCanvas.getGraphicsContext2D();
-        boolean isAlive = this.map.getCell(row, column);
-        gc.setFill(isAlive ? Color.DARKGREEN : Color.SANDYBROWN);
-        drawCell(gc, row, column);
-    }
-
-    private void drawCell(GraphicsContext gc, int row, int column) {
-        double cellSize = getCellSize();
-        int fieldWidth = getFieldWidth();
-        int fieldHeight = getFieldHeight();
-
-        double startX = (this.fieldCanvas.getWidth() - cellSize * fieldWidth) / 2;
-        double startY = (this.fieldCanvas.getHeight() - cellSize * fieldHeight) / 2;
-
-        int borderWidth = 1;
-
-        gc.fillRect(
-                startX + column * cellSize,
-                startY + row * cellSize,
-                cellSize - borderWidth,
-                cellSize - borderWidth
-        );
-    }
-
-    private Integer getCellColumnFromCanvas(double x) {
-        double cellSize = getCellSize();
-        int fieldWidth = getFieldWidth();
-        double startX = (this.fieldCanvas.getWidth() - cellSize * fieldWidth) / 2;
-
-        int column = (int) Math.floor((x - startX) / cellSize);
-        if (0 <= column && column < fieldWidth) {
-            return column;
-        }
-
-        return null;
-    }
-
-    private Integer getCellRowFromCanvas(double y) {
-        double cellSize = getCellSize();
-        int fieldHeight = getFieldHeight();
-        double startY = (this.fieldCanvas.getHeight() - cellSize * fieldHeight) / 2;
-
-        int row = (int) Math.floor((y - startY) / cellSize);
-        if (0 <= row && row < fieldHeight) {
-            return row;
-        }
-
-        return null;
-    }
-
-    private boolean isInDrawingArea(double x, double y) {
-        Integer row = getCellColumnFromCanvas(x);
-        Integer column = getCellRowFromCanvas(y);
-        return row != null && column != null;
-    }
-
-    private double getCellSize() {
-        return Math.min(
-                this.fieldCanvas.getWidth() / getFieldWidth(),
-                this.fieldCanvas.getHeight() / getFieldHeight()
-        );
-    }
-
-    private int getFieldWidth() {
-        return this.map.getWidth();
-    }
-
-    private int getFieldHeight() {
-        return this.map.getHeight();
     }
 
 }
