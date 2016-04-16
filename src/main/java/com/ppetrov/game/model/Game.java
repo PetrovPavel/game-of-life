@@ -3,38 +3,42 @@ package com.ppetrov.game.model;
 import rx.Observable;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Game {
 
     private IRules rules;
-    private AtomicBoolean paused;
+    private boolean paused;
+    private int speed;
 
     public Game(IRules rules) {
         this.rules = rules;
-        this.paused = new AtomicBoolean(false);
+        this.speed = 500;
     }
 
-    public Observable<Map> startGame(Map map, int speed) {
-        return Observable.interval(0, speed, TimeUnit.MILLISECONDS).
-                filter(thick -> !this.paused.get()).
-                scan(map, (currentMap, tick) -> nextState(currentMap));
+    public Observable<Map> startGame() {
+        return Observable.interval(0, getSpeed(), TimeUnit.MILLISECONDS).
+                filter(tick -> !this.paused).
+                scan(getDefaultMap(), (currentMap, tick) -> this.rules.nextState(currentMap));
     }
 
     public boolean isPaused() {
-        return this.paused.get();
+        return this.paused;
     }
 
-    public void pause() {
-        this.paused.set(true);
+    public void pauseResume() {
+        this.paused = !this.paused;
     }
 
-    public void resume() {
-        this.paused.set(false);
+    public int getSpeed() {
+        return this.speed;
     }
 
-    private Map nextState(Map currentMap) {
-        return this.rules.nextState(currentMap);
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+
+    private static Map getDefaultMap() {
+        return new Map(50, 50);
     }
 
 }

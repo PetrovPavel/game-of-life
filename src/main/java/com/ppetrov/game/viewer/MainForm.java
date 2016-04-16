@@ -2,7 +2,6 @@ package com.ppetrov.game.viewer;
 
 import com.ppetrov.game.model.DefaultRules;
 import com.ppetrov.game.model.Game;
-import com.ppetrov.game.model.Map;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -24,20 +23,14 @@ import rx.subscribers.JavaFxSubscriber;
 
 public class MainForm extends Application {
 
-    private int speed;
-
     private FieldCanvas mainCanvas;
+    private Canvas templateCanvas;
 
     private Game game;
-    private Map map;
     private Subscription gameSubscription;
-
-    private Canvas templateCanvas;
 
     public MainForm() {
         this.game = new Game(new DefaultRules());
-        this.speed = 500;
-        this.map = new Map(50, 50);
     }
 
     @Override
@@ -48,7 +41,7 @@ public class MainForm extends Application {
         Pane settingsPane = createSettingsPane();
         Pane templatePane = createTemplatePane();
 
-        subscribeOnGame();
+        startGame();
 
         ScrollPane mainCanvasPane = this.mainCanvas.getPane();
         Canvas canvas = this.mainCanvas.getCanvas();
@@ -75,9 +68,14 @@ public class MainForm extends Application {
         root.requestFocus();
     }
 
+    @Override
+    public void stop() throws Exception {
+        stopGame();
+        super.stop();
+    }
+
     private void createMainCanvas(Stage primaryStage) {
         this.mainCanvas = new FieldCanvas(primaryStage);
-        this.mainCanvas.setMap(this.map);
     }
 
     private Pane createSettingsPane() {
@@ -89,14 +87,13 @@ public class MainForm extends Application {
         pauseResumeButton.setTooltip(pauseResumeTooltip);
         pauseResumeButton.setGraphic(pauseImageView);
         pauseResumeButton.setOnAction(event -> {
+            this.game.pauseResume();
             if (this.game.isPaused()) {
-                this.game.resume();
-                pauseResumeTooltip.setText("Pause");
-                pauseResumeButton.setGraphic(pauseImageView);
-            } else {
-                this.game.pause();
                 pauseResumeTooltip.setText("Resume");
                 pauseResumeButton.setGraphic(resumeImageView);
+            } else {
+                pauseResumeTooltip.setText("Pause");
+                pauseResumeButton.setGraphic(pauseImageView);
             }
         });
 
@@ -109,9 +106,7 @@ public class MainForm extends Application {
         Observable<Integer> sliderProperty =
                 JavaFxObservable.fromObservableValue(speedSlider.valueProperty()).
                         map(change -> Math.abs(change.intValue()));
-        sliderProperty.subscribe(speed -> {
-            this.speed = speed;
-        });
+        sliderProperty.subscribe(this.game::setSpeed);
         speedLabel.textProperty().bind(JavaFxSubscriber.toBinding(
                 sliderProperty.map(this::getSpeedInSecondsString)
         ));
@@ -124,16 +119,7 @@ public class MainForm extends Application {
         Button restartButton = new Button();
         restartButton.setTooltip(new Tooltip("Restart Game"));
         restartButton.setGraphic(new ImageView("/restart.png"));
-        restartButton.setOnAction(event -> {
-//            Canvas canvas = this.mainCanvas.getCanvas();
-//            double cellSize = this.mainCanvas.getCellSize();
-//            this.map = new Map(
-//                    (int) (canvas.getWidth() / cellSize),
-//                    (int) (canvas.getHeight() / cellSize)
-//            );
-//            this.mainCanvas.setMap(this.map);
-//            this.mainCanvas.redraw();
-        });
+        restartButton.setOnAction(event -> restartGame());
 
         ToolBar toolBar = new ToolBar(
                 pauseResumeButton,
@@ -171,21 +157,22 @@ public class MainForm extends Application {
         return String.format("%.2fs", speedInMillis / 1000);
     }
 
-    private Observable<Map> startGame() {
-        return this.game.startGame(this.map, this.speed);
+    private void restartGame() {
+        stopGame();
+        startGame();
     }
 
-    private void subscribeOnGame() {
-        subscribeOnGame(startGame());
+    private void startGame() {
+        this.gameSubscription = this.game.startGame().subscribe(map -> {
+            this.mainCanvas.setMap(map);
+            Platform.runLater(this.mainCanvas::redraw);
+        });
     }
 
-    private void subscribeOnGame(Observable<Map> observable) {
-        this.gameSubscription = observable.
-                subscribe(map -> {
-                    this.map = map;
-                    this.mainCanvas.setMap(this.map);
-                    Platform.runLater(this.mainCanvas::redraw);
-                });
+    private void stopGame() {
+        if (this.gameSubscription != null && !this.gameSubscription.isUnsubscribed()) {
+            this.gameSubscription.unsubscribe();
+        }
     }
 
     private void nextStep() {
