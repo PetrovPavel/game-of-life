@@ -89,14 +89,14 @@ public class MainForm extends Application {
         pauseResumeButton.setTooltip(pauseResumeTooltip);
         pauseResumeButton.setGraphic(pauseImageView);
         pauseResumeButton.setOnAction(event -> {
-            if (isSubscribedOnGame()) {
-                unsubscribeFromGame();
-                pauseResumeTooltip.setText("Resume");
-                pauseResumeButton.setGraphic(resumeImageView);
-            } else {
-                subscribeOnGame();
+            if (this.game.isPaused()) {
+                this.game.resume();
                 pauseResumeTooltip.setText("Pause");
                 pauseResumeButton.setGraphic(pauseImageView);
+            } else {
+                this.game.pause();
+                pauseResumeTooltip.setText("Resume");
+                pauseResumeButton.setGraphic(resumeImageView);
             }
         });
 
@@ -111,7 +111,6 @@ public class MainForm extends Application {
                         map(change -> Math.abs(change.intValue()));
         sliderProperty.subscribe(speed -> {
             this.speed = speed;
-            reSubscribeOnGame();
         });
         speedLabel.textProperty().bind(JavaFxSubscriber.toBinding(
                 sliderProperty.map(this::getSpeedInSecondsString)
@@ -126,15 +125,14 @@ public class MainForm extends Application {
         restartButton.setTooltip(new Tooltip("Restart Game"));
         restartButton.setGraphic(new ImageView("/restart.png"));
         restartButton.setOnAction(event -> {
-            Canvas canvas = this.mainCanvas.getCanvas();
-            double cellSize = this.mainCanvas.getCellSize();
-            this.map = new Map(
-                    (int) (canvas.getWidth() / cellSize),
-                    (int) (canvas.getHeight() / cellSize)
-            );
-            this.mainCanvas.setMap(this.map);
-            reSubscribeOnGame();
-            this.mainCanvas.redraw();
+//            Canvas canvas = this.mainCanvas.getCanvas();
+//            double cellSize = this.mainCanvas.getCellSize();
+//            this.map = new Map(
+//                    (int) (canvas.getWidth() / cellSize),
+//                    (int) (canvas.getHeight() / cellSize)
+//            );
+//            this.mainCanvas.setMap(this.map);
+//            this.mainCanvas.redraw();
         });
 
         ToolBar toolBar = new ToolBar(
@@ -177,19 +175,8 @@ public class MainForm extends Application {
         return this.game.startGame(this.map, this.speed);
     }
 
-    private void reSubscribeOnGame() {
-        if (isSubscribedOnGame()) {
-            reSubscribeOnGame(startGame());
-        }
-    }
-
     private void subscribeOnGame() {
         subscribeOnGame(startGame());
-    }
-
-    private void reSubscribeOnGame(Observable<Map> observable) {
-        unsubscribeFromGame();
-        subscribeOnGame(observable);
     }
 
     private void subscribeOnGame(Observable<Map> observable) {
@@ -202,22 +189,12 @@ public class MainForm extends Application {
     }
 
     private void nextStep() {
-        startGame().take(2).
-                subscribe(map -> {
-                    this.map = map;
-                    this.mainCanvas.setMap(this.map);
-                    Platform.runLater(this.mainCanvas::redraw);
-                });
-    }
-
-    private void unsubscribeFromGame() {
-        if (isSubscribedOnGame()) {
-            this.gameSubscription.unsubscribe();
-        }
-    }
-
-    private boolean isSubscribedOnGame() {
-        return this.gameSubscription != null && !this.gameSubscription.isUnsubscribed();
+//        startGame().take(2).
+//                subscribe(map -> {
+//                    this.map = map;
+//                    this.mainCanvas.setMap(this.map);
+//                    Platform.runLater(this.mainCanvas::redraw);
+//                });
     }
 
 }
