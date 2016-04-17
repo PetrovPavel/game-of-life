@@ -71,7 +71,7 @@ public class FieldCanvas {
             clearRowsUnderCursor();
         });
 
-        this.canvas.setOnMouseDragged(event -> {
+        EventHandler<MouseEvent> changingCellsHandler = event -> {
             this.rowUnderCursor = getCellRowFromCanvas(event.getY());
             this.columnUnderCursor = getCellColumnFromCanvas(event.getX());
             if (this.rowUnderCursor != null && this.columnUnderCursor != null) {
@@ -85,7 +85,9 @@ public class FieldCanvas {
             } else {
                 clearRowsUnderCursor();
             }
-        });
+        };
+        this.canvas.setOnMouseDragged(changingCellsHandler);
+        this.canvas.setOnMousePressed(changingCellsHandler);
     }
 
     public void redraw() {
