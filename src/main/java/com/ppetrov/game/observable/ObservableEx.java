@@ -27,7 +27,7 @@ public class ObservableEx {
                         subscriber.onNext(value++);
                         scheduler.createWorker().schedule(this, periodFunc.get(), timeUnit);
                     }
-                }, periodFunc.get(), TimeUnit.MILLISECONDS);
+                }, periodFunc.get(), timeUnit);
             }
         });
     }
