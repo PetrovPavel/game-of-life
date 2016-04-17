@@ -9,13 +9,10 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
 
 public class FieldCanvas {
 
     private Map map;
-
-    private Stage stage;
 
     private ScrollPane pane;
     private Canvas canvas;
@@ -23,8 +20,7 @@ public class FieldCanvas {
     private Integer columnUnderCursor;
     private Integer rowUnderCursor;
 
-    public FieldCanvas(Stage stage) {
-        this.stage = stage;
+    public FieldCanvas() {
         create();
     }
 
@@ -59,7 +55,7 @@ public class FieldCanvas {
             double x = event.getX();
             double y = event.getY();
             boolean inDrawingArea = isInDrawingArea(x, y);
-            this.stage.getScene().setCursor(inDrawingArea ? Cursor.HAND : Cursor.DEFAULT);
+            this.canvas.setCursor(inDrawingArea ? Cursor.HAND : Cursor.DEFAULT);
             this.rowUnderCursor = getCellRowFromCanvas(y);
             this.columnUnderCursor = getCellColumnFromCanvas(x);
             redraw();
@@ -67,7 +63,7 @@ public class FieldCanvas {
         this.canvas.setOnMouseEntered(canvasMouseEventHandler);
         this.canvas.setOnMouseMoved(canvasMouseEventHandler);
         this.canvas.setOnMouseExited(event -> {
-            this.stage.getScene().setCursor(Cursor.DEFAULT);
+            this.canvas.setCursor(Cursor.DEFAULT);
             clearRowsUnderCursor();
         });
 

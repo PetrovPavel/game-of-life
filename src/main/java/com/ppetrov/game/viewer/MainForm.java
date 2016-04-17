@@ -37,7 +37,7 @@ public class MainForm extends Application {
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Game of Life");
 
-        createMainCanvas(primaryStage);
+        createMainCanvas();
         Pane settingsPane = createSettingsPane();
         Pane templatePane = createTemplatePane();
 
@@ -74,8 +74,8 @@ public class MainForm extends Application {
         super.stop();
     }
 
-    private void createMainCanvas(Stage primaryStage) {
-        this.mainCanvas = new FieldCanvas(primaryStage);
+    private void createMainCanvas() {
+        this.mainCanvas = new FieldCanvas();
     }
 
     private Pane createSettingsPane() {
