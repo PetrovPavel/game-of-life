@@ -8,32 +8,28 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 public class FieldCanvas {
 
-    private Map map;
-
     private ScrollPane pane;
     private Canvas canvas;
+
+    private Map map;
 
     private Integer columnUnderCursor;
     private Integer rowUnderCursor;
 
-    public FieldCanvas() {
+    public FieldCanvas(Pane parent) {
         create();
+        parent.getChildren().add(this.pane);
     }
 
     public void setMap(Map map) {
         this.map = map;
-    }
-
-    public ScrollPane getPane() {
-        return this.pane;
-    }
-
-    public Canvas getCanvas() {
-        return this.canvas;
     }
 
     private void create() {
@@ -44,6 +40,17 @@ public class FieldCanvas {
         this.pane.setStyle("-fx-background-color:transparent;");
 
         this.pane.setPrefSize(500, 500);
+
+        this.canvas.widthProperty().bind(
+                this.pane.widthProperty().
+                        subtract(2)
+        );
+        this.canvas.heightProperty().bind(
+                this.pane.heightProperty().
+                        subtract(2)
+        );
+
+        VBox.setVgrow(this.pane, Priority.ALWAYS);
     }
 
     private void createFieldCanvas() {
@@ -52,24 +59,16 @@ public class FieldCanvas {
         this.canvas.heightProperty().addListener(observable -> redraw());
 
         EventHandler<MouseEvent> canvasMouseEventHandler = event -> {
-            double x = event.getX();
-            double y = event.getY();
-            boolean inDrawingArea = isInDrawingArea(x, y);
-            this.canvas.setCursor(inDrawingArea ? Cursor.HAND : Cursor.DEFAULT);
-            this.rowUnderCursor = getCellRowFromCanvas(y);
-            this.columnUnderCursor = getCellColumnFromCanvas(x);
+            calcCellUnderCursor(event);
+            updateCursor(event);
             redraw();
         };
         this.canvas.setOnMouseEntered(canvasMouseEventHandler);
         this.canvas.setOnMouseMoved(canvasMouseEventHandler);
-        this.canvas.setOnMouseExited(event -> {
-            this.canvas.setCursor(Cursor.DEFAULT);
-            clearRowsUnderCursor();
-        });
+        this.canvas.setOnMouseExited(event -> clearRowsUnderCursor());
 
         EventHandler<MouseEvent> changingCellsHandler = event -> {
-            this.rowUnderCursor = getCellRowFromCanvas(event.getY());
-            this.columnUnderCursor = getCellColumnFromCanvas(event.getX());
+            calcCellUnderCursor(event);
             if (this.rowUnderCursor != null && this.columnUnderCursor != null) {
                 MouseButton mouseButton = event.getButton();
                 boolean isPrimary = MouseButton.PRIMARY.equals(mouseButton);
@@ -84,6 +83,18 @@ public class FieldCanvas {
         };
         this.canvas.setOnMouseDragged(changingCellsHandler);
         this.canvas.setOnMousePressed(changingCellsHandler);
+    }
+
+    private void calcCellUnderCursor(MouseEvent event) {
+        double x = event.getX();
+        double y = event.getY();
+        this.rowUnderCursor = getCellRowFromCanvas(y);
+        this.columnUnderCursor = getCellColumnFromCanvas(x);
+    }
+
+    private void updateCursor(MouseEvent event) {
+        boolean inDrawingArea = isInDrawingArea(event.getX(), event.getY());
+        this.canvas.setCursor(inDrawingArea ? Cursor.HAND : Cursor.DEFAULT);
     }
 
     public void redraw() {
@@ -178,11 +189,11 @@ public class FieldCanvas {
     }
 
     private int getFieldWidth() {
-        return this.map.getWidth();
+        return this.map != null ? this.map.getWidth() : 0;
     }
 
     private int getFieldHeight() {
-        return this.map.getHeight();
+        return this.map != null ? this.map.getHeight() : 0;
     }
 
 }

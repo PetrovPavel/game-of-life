@@ -23,6 +23,8 @@ import rx.subscribers.JavaFxSubscriber;
 
 public class MainForm extends Application {
 
+    private Stage primaryStage;
+
     private FieldCanvas mainCanvas;
     private Canvas templateCanvas;
 
@@ -35,29 +37,18 @@ public class MainForm extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        this.primaryStage = primaryStage;
         primaryStage.setTitle("Game of Life");
 
-        createMainCanvas();
+        VBox leftPane = new VBox();
+
+        this.mainCanvas = new FieldCanvas(leftPane);
         Pane settingsPane = createSettingsPane();
         Pane templatePane = createTemplatePane();
 
         startGame();
 
-        ScrollPane mainCanvasPane = this.mainCanvas.getPane();
-        Canvas canvas = this.mainCanvas.getCanvas();
-        canvas.widthProperty().bind(
-                mainCanvasPane.widthProperty().
-                        subtract(settingsPane.getWidth()).
-                        subtract(2)
-        );
-        canvas.heightProperty().bind(
-                mainCanvasPane.heightProperty().
-                        subtract(2)
-        );
-
-        VBox leftPane = new VBox();
-        leftPane.getChildren().addAll(mainCanvasPane, settingsPane);
-        VBox.setVgrow(mainCanvasPane, Priority.ALWAYS);
+        leftPane.getChildren().addAll(settingsPane);
 
         Pane root = new HBox();
         root.getChildren().addAll(leftPane, templatePane);
@@ -72,10 +63,6 @@ public class MainForm extends Application {
     public void stop() throws Exception {
         stopGame();
         super.stop();
-    }
-
-    private void createMainCanvas() {
-        this.mainCanvas = new FieldCanvas();
     }
 
     private Pane createSettingsPane() {
@@ -138,8 +125,8 @@ public class MainForm extends Application {
         Label templateLabel = new Label("Template:");
 
         this.templateCanvas = new Canvas(100, 100);
-        this.mainCanvas.getCanvas().widthProperty().addListener(observable -> redrawTemplateCanvas());
-        this.mainCanvas.getCanvas().heightProperty().addListener(observable -> redrawTemplateCanvas());
+        this.primaryStage.widthProperty().addListener(observable -> redrawTemplateCanvas());
+        this.primaryStage.heightProperty().addListener(observable -> redrawTemplateCanvas());
 
         VBox templatePane = new VBox();
         templatePane.getChildren().addAll(templateLabel, this.templateCanvas);
