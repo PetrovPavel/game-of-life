@@ -1,7 +1,6 @@
 package com.ppetrov.game.observable;
 
 import rx.Observable;
-import rx.Scheduler;
 import rx.Subscriber;
 import rx.functions.Action0;
 import rx.plugins.RxJavaObservableExecutionHook;
@@ -24,23 +23,36 @@ public class ObservableEx<T> extends Observable<T> {
         return new ObservableEx<>(hook.onCreate(f));
     }
 
-    public static ObservableEx<Long> timer(Supplier<Integer> periodFunc, TimeUnit timeUnit) {
-        return timer(periodFunc, timeUnit, Schedulers.computation());
-    }
-
-    public static ObservableEx<Long> timer(Supplier<Integer> periodFunc, TimeUnit timeUnit, Scheduler scheduler) {
+    public static ObservableEx<Long> interval(Supplier<Integer> periodFunc, TimeUnit timeUnit) {
         return ObservableEx.create(new Observable.OnSubscribe<Long>() {
             private Long value = 0L;
 
             @Override
             public void call(Subscriber<? super Long> subscriber) {
-                scheduler.createWorker().schedule(new Action0() {
+                Schedulers.computation().createWorker().schedule(new Action0() {
                     @Override
                     public void call() {
                         subscriber.onNext(value++);
-                        scheduler.createWorker().schedule(this, periodFunc.get(), timeUnit);
+                        Schedulers.computation().createWorker().schedule(this, periodFunc.get(), timeUnit);
                     }
                 }, periodFunc.get(), timeUnit);
+            }
+        });
+    }
+
+    public static ObservableEx<Long> loopWhen(Supplier<Boolean> condition) {
+        return ObservableEx.create(new Observable.OnSubscribe<Long>() {
+            @Override
+            public void call(Subscriber<? super Long> subscriber) {
+                Schedulers.computation().createWorker().schedule(new Action0() {
+                    @Override
+                    public void call() {
+                        if (condition.get()) {
+                            subscriber.onNext(0L);
+                        }
+                        Schedulers.computation().createWorker().schedule(this);
+                    }
+                });
             }
         });
     }

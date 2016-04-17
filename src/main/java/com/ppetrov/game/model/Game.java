@@ -9,6 +9,7 @@ public class Game {
 
     private IRules rules;
     private boolean paused;
+    private boolean next;
     private int speed;
 
     public Game(IRules rules) {
@@ -17,8 +18,9 @@ public class Game {
     }
 
     public Observable<Map> startGame() {
-        return ObservableEx.timer(this::getSpeed, TimeUnit.MILLISECONDS).
-                filter(tick -> !this.paused).
+        return ObservableEx.interval(this::getSpeed, TimeUnit.MILLISECONDS).
+                filter(tick -> !isPaused()).
+                mergeWith(ObservableEx.loopWhen(this::isNext)).
                 scan(getDefaultMap(), (currentMap, tick) -> this.rules.nextState(currentMap));
     }
 
@@ -36,6 +38,18 @@ public class Game {
 
     public void setSpeed(int speed) {
         this.speed = speed;
+    }
+
+    public void step() {
+        this.next = true;
+    }
+
+    private boolean isNext() {
+        boolean next = this.next;
+        if (next) {
+            this.next = false;
+        }
+        return next;
     }
 
     private static Map getDefaultMap() {

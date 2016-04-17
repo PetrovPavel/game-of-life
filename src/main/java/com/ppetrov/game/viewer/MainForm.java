@@ -114,7 +114,7 @@ public class MainForm extends Application {
         Button nextStepButton = new Button();
         nextStepButton.setTooltip(new Tooltip("Next Step"));
         nextStepButton.setGraphic(new ImageView("/step.png"));
-        nextStepButton.setOnAction(event -> nextStep());
+        nextStepButton.setOnAction(event -> this.game.step());
 
         Button restartButton = new Button();
         restartButton.setTooltip(new Tooltip("Restart Game"));
@@ -173,15 +173,6 @@ public class MainForm extends Application {
         if (this.gameSubscription != null && !this.gameSubscription.isUnsubscribed()) {
             this.gameSubscription.unsubscribe();
         }
-    }
-
-    private void nextStep() {
-//        startGame().take(2).
-//                subscribe(map -> {
-//                    this.map = map;
-//                    this.mainCanvas.setMap(this.map);
-//                    Platform.runLater(this.mainCanvas::redraw);
-//                });
     }
 
 }
