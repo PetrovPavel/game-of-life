@@ -1,5 +1,6 @@
 package com.ppetrov.game.model;
 
+import com.ppetrov.game.observable.ObservableEx;
 import rx.Observable;
 
 import java.util.concurrent.TimeUnit;
@@ -16,7 +17,7 @@ public class Game {
     }
 
     public Observable<Map> startGame() {
-        return Observable.interval(0, getSpeed(), TimeUnit.MILLISECONDS).
+        return ObservableEx.timer(this::getSpeed, TimeUnit.MILLISECONDS).
                 filter(tick -> !this.paused).
                 scan(getDefaultMap(), (currentMap, tick) -> this.rules.nextState(currentMap));
     }

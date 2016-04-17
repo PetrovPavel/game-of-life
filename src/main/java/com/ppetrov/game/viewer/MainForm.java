@@ -98,7 +98,7 @@ public class MainForm extends Application {
         });
 
         Label speedLabel = new Label();
-        Slider speedSlider = new Slider(-1000, -100, -500);
+        Slider speedSlider = new Slider(-1000, -100, -this.game.getSpeed());
         speedSlider.setShowTickMarks(true);
         speedSlider.setMajorTickUnit(100);
         speedSlider.setBlockIncrement(100);
