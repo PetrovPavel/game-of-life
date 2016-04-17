@@ -4,19 +4,32 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
 import rx.functions.Action0;
+import rx.plugins.RxJavaObservableExecutionHook;
+import rx.plugins.RxJavaPlugins;
 import rx.schedulers.Schedulers;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-public class ObservableEx {
+public class ObservableEx<T> extends Observable<T> {
 
-    public static Observable<Long> timer(Supplier<Integer> periodFunc, TimeUnit timeUnit) {
+    private static final RxJavaObservableExecutionHook hook =
+            RxJavaPlugins.getInstance().getObservableExecutionHook();
+
+    protected ObservableEx(OnSubscribe<T> f) {
+        super(f);
+    }
+
+    public static <T> ObservableEx<T> create(OnSubscribe<T> f) {
+        return new ObservableEx<>(hook.onCreate(f));
+    }
+
+    public static ObservableEx<Long> timer(Supplier<Integer> periodFunc, TimeUnit timeUnit) {
         return timer(periodFunc, timeUnit, Schedulers.computation());
     }
 
-    private static Observable<Long> timer(Supplier<Integer> periodFunc, TimeUnit timeUnit, Scheduler scheduler) {
-        return Observable.create(new Observable.OnSubscribe<Long>() {
+    public static ObservableEx<Long> timer(Supplier<Integer> periodFunc, TimeUnit timeUnit, Scheduler scheduler) {
+        return ObservableEx.create(new Observable.OnSubscribe<Long>() {
             private Long value = 0L;
 
             @Override
