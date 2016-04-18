@@ -32,14 +32,20 @@ public class FieldCanvas {
         this.map = map;
     }
 
+    public void setPrefSize(double width, double height) {
+        this.pane.setPrefSize(width, height);
+    }
+
+    public void setVGrow(Priority priority) {
+        VBox.setVgrow(this.pane, priority);
+    }
+
     private void create() {
         this.pane = new ScrollPane();
         createFieldCanvas();
 
         this.pane.setContent(this.canvas);
         this.pane.setStyle("-fx-background-color:transparent;");
-
-        this.pane.setPrefSize(500, 500);
 
         this.canvas.widthProperty().bind(
                 this.pane.widthProperty().
@@ -49,8 +55,6 @@ public class FieldCanvas {
                 this.pane.heightProperty().
                         subtract(2)
         );
-
-        VBox.setVgrow(this.pane, Priority.ALWAYS);
     }
 
     private void createFieldCanvas() {

@@ -6,15 +6,12 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import rx.Observable;
 import rx.Subscription;
@@ -23,10 +20,8 @@ import rx.subscribers.JavaFxSubscriber;
 
 public class MainForm extends Application {
 
-    private Stage primaryStage;
-
     private FieldCanvas mainCanvas;
-    private Canvas templateCanvas;
+    private FieldCanvas templateCanvas;
 
     private Game game;
     private Subscription gameSubscription;
@@ -37,26 +32,29 @@ public class MainForm extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        this.primaryStage = primaryStage;
         primaryStage.setTitle("Game of Life");
 
+        Pane root = new HBox();
         VBox leftPane = new VBox();
+        root.getChildren().add(leftPane);
 
-        this.mainCanvas = new FieldCanvas(leftPane);
-        Pane settingsPane = createSettingsPane();
-        Pane templatePane = createTemplatePane();
+        createMainCanvas(leftPane);
+        createSettingsPane(leftPane);
+        createTemplatePane(root);
 
         startGame();
 
-        leftPane.getChildren().addAll(settingsPane);
-
-        Pane root = new HBox();
-        root.getChildren().addAll(leftPane, templatePane);
         HBox.setHgrow(leftPane, Priority.ALWAYS);
 
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
         root.requestFocus();
+    }
+
+    public void createMainCanvas(VBox leftPane) {
+        this.mainCanvas = new FieldCanvas(leftPane);
+        this.mainCanvas.setPrefSize(500, 500);
+        this.mainCanvas.setVGrow(Priority.ALWAYS);
     }
 
     @Override
@@ -65,7 +63,7 @@ public class MainForm extends Application {
         super.stop();
     }
 
-    private Pane createSettingsPane() {
+    private void createSettingsPane(Pane parent) {
         ImageView pauseImageView = new ImageView("/pause.png");
         ImageView resumeImageView = new ImageView("/resume.png");
 
@@ -118,26 +116,18 @@ public class MainForm extends Application {
         HBox settingsGroup = new HBox(toolBar);
         settingsGroup.setAlignment(Pos.CENTER);
         toolBar.setStyle("-fx-background-color:transparent;");
-        return settingsGroup;
+
+        parent.getChildren().add(settingsGroup);
     }
 
-    private Pane createTemplatePane() {
-        Label templateLabel = new Label("Template:");
-
-        this.templateCanvas = new Canvas(100, 100);
-        this.primaryStage.widthProperty().addListener(observable -> redrawTemplateCanvas());
-        this.primaryStage.heightProperty().addListener(observable -> redrawTemplateCanvas());
-
+    private void createTemplatePane(Pane parent) {
         VBox templatePane = new VBox();
-        templatePane.getChildren().addAll(templateLabel, this.templateCanvas);
+        parent.getChildren().add(templatePane);
 
-        return templatePane;
-    }
+        templatePane.getChildren().add(new Label("Template:"));
 
-    private void redrawTemplateCanvas() {
-        GraphicsContext gc = this.templateCanvas.getGraphicsContext2D();
-        gc.setFill(Color.GRAY);
-        gc.fillRect(0, 0, this.templateCanvas.getWidth(), this.templateCanvas.getHeight());
+        this.templateCanvas = new FieldCanvas(templatePane);
+        this.templateCanvas.setPrefSize(100, 100);
     }
 
     private String getSpeedInSecondsString(double speedInMillis) {
