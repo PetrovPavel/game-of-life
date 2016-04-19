@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 public class Game {
 
     private IRules rules;
-    private boolean paused;
     private boolean next;
     private int speed;
 
@@ -17,19 +16,14 @@ public class Game {
         this.speed = 500;
     }
 
-    public Observable<Map> startGame() {
-        return ObservableEx.interval(this::getSpeed, TimeUnit.MILLISECONDS).
-                filter(tick -> !isPaused()).
+    public Observable<Map> startGame(Observable<Boolean> pauseObservable) {
+        return Observable.combineLatest(
+                ObservableEx.interval(this::getSpeed, TimeUnit.MILLISECONDS),
+                pauseObservable,
+                (tick, play) -> play
+        ).filter(Boolean::booleanValue).
                 mergeWith(ObservableEx.loopWhen(this::isNext)).
                 scan(getDefaultMap(), (currentMap, tick) -> this.rules.nextState(currentMap));
-    }
-
-    public boolean isPaused() {
-        return this.paused;
-    }
-
-    public void pauseResume() {
-        this.paused = !this.paused;
     }
 
     public int getSpeed() {

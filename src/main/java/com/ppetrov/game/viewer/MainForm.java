@@ -26,6 +26,7 @@ public class MainForm extends Application {
 
     private Game game;
     private Subscription gameSubscription;
+    private Observable<Boolean> pauseObservable;
 
     private Map template;
 
@@ -74,23 +75,20 @@ public class MainForm extends Application {
     }
 
     private void createSettingsPane(Pane parent) {
-        ImageView pauseImageView = new ImageView("/pause.png");
-        ImageView resumeImageView = new ImageView("/resume.png");
+        Button resumeButton = new Button();
+        resumeButton.setTooltip(new Tooltip("Resume"));
+        resumeButton.setGraphic(new ImageView("/resume.png"));
 
-        Button pauseResumeButton = new Button();
-        Tooltip pauseResumeTooltip = new Tooltip("Pause");
-        pauseResumeButton.setTooltip(pauseResumeTooltip);
-        pauseResumeButton.setGraphic(pauseImageView);
-        pauseResumeButton.setOnAction(event -> {
-            this.game.pauseResume();
-            if (this.game.isPaused()) {
-                pauseResumeTooltip.setText("Resume");
-                pauseResumeButton.setGraphic(resumeImageView);
-            } else {
-                pauseResumeTooltip.setText("Pause");
-                pauseResumeButton.setGraphic(pauseImageView);
-            }
-        });
+        Button pauseButton = new Button();
+        pauseButton.setTooltip(new Tooltip("Pause"));
+        pauseButton.setGraphic(new ImageView("/pause.png"));
+
+        this.pauseObservable = Observable.just(true).mergeWith(
+                JavaFxObservable.fromActionEvents(pauseButton).
+                        map(event -> false).mergeWith(
+                        JavaFxObservable.fromActionEvents(resumeButton).
+                                map(event -> true)
+                ));
 
         Label speedLabel = new Label();
         Slider speedSlider = new Slider(-1000, -100, -this.game.getSpeed());
@@ -117,7 +115,7 @@ public class MainForm extends Application {
         restartButton.setOnAction(event -> restartGame());
 
         ToolBar toolBar = new ToolBar(
-                pauseResumeButton,
+                resumeButton, pauseButton,
                 speedLabel, speedSlider,
                 nextStepButton,
                 restartButton
@@ -151,7 +149,7 @@ public class MainForm extends Application {
     }
 
     private void startGame() {
-        this.gameSubscription = this.game.startGame().subscribe(map -> {
+        this.gameSubscription = this.game.startGame(this.pauseObservable).subscribe(map -> {
             this.mainCanvas.setMap(map);
             Platform.runLater(this.mainCanvas::redraw);
         });
