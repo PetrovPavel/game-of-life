@@ -40,21 +40,4 @@ public class ObservableEx<T> extends Observable<T> {
         });
     }
 
-    public static ObservableEx<Boolean> loopWhen(Supplier<Boolean> condition) {
-        return ObservableEx.create(new Observable.OnSubscribe<Boolean>() {
-            @Override
-            public void call(Subscriber<? super Boolean> subscriber) {
-                Schedulers.computation().createWorker().schedule(new Action0() {
-                    @Override
-                    public void call() {
-                        if (condition.get()) {
-                            subscriber.onNext(true);
-                        }
-                        Schedulers.computation().createWorker().schedule(this);
-                    }
-                });
-            }
-        });
-    }
-
 }

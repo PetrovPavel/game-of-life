@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 public class Game {
 
     private IRules rules;
-    private boolean next;
     private int speed;
 
     public Game(IRules rules) {
@@ -16,13 +15,14 @@ public class Game {
         this.speed = 500;
     }
 
-    public Observable<Map> startGame(Observable<Boolean> pauseObservable) {
+    public Observable<Map> startGame(Observable<Boolean> pauseObservable,
+                                     Observable<Boolean> nextStepObservable) {
         return Observable.combineLatest(
                 ObservableEx.interval(this::getSpeed, TimeUnit.MILLISECONDS),
                 pauseObservable,
                 (tick, play) -> play
         ).filter(Boolean::booleanValue).
-                mergeWith(ObservableEx.loopWhen(this::isNext)).
+                mergeWith(nextStepObservable).
                 scan(getDefaultMap(), (currentMap, tick) -> this.rules.nextState(currentMap));
     }
 
@@ -32,18 +32,6 @@ public class Game {
 
     public void setSpeed(int speed) {
         this.speed = speed;
-    }
-
-    public void step() {
-        this.next = true;
-    }
-
-    private boolean isNext() {
-        boolean next = this.next;
-        if (next) {
-            this.next = false;
-        }
-        return next;
     }
 
     private static Map getDefaultMap() {
