@@ -12,8 +12,12 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import rx.Observable;
+import rx.observables.JavaFxObservable;
 
 public class FieldCanvas {
+
+    private static Map DEFAULT_BRUSH = new Map(new Boolean[][]{{true}});
 
     private ScrollPane pane;
     private Canvas canvas;
@@ -23,7 +27,10 @@ public class FieldCanvas {
     private Integer columnUnderCursor;
     private Integer rowUnderCursor;
 
+    private Map brush;
+
     public FieldCanvas(Pane parent) {
+        this.brush = DEFAULT_BRUSH;
         create();
         parent.getChildren().add(this.pane);
     }
@@ -71,22 +78,48 @@ public class FieldCanvas {
         this.canvas.setOnMouseMoved(canvasMouseEventHandler);
         this.canvas.setOnMouseExited(event -> clearRowsUnderCursor());
 
-        EventHandler<MouseEvent> changingCellsHandler = event -> {
-            calcCellUnderCursor(event);
-            if (this.rowUnderCursor != null && this.columnUnderCursor != null) {
-                MouseButton mouseButton = event.getButton();
-                boolean isPrimary = MouseButton.PRIMARY.equals(mouseButton);
-                boolean isSecondary = MouseButton.SECONDARY.equals(mouseButton);
-                if (isPrimary || isSecondary) {
-                    this.map.setCell(this.rowUnderCursor, this.columnUnderCursor, isPrimary);
-                    redraw();
+        this.canvas.setOnMouseDragged(this::changeMap);
+        this.canvas.setOnMousePressed(this::changeMap);
+    }
+
+    public Observable<Map> getMapChanges() {
+        return JavaFxObservable.fromNodeEvents(this.canvas, MouseEvent.MOUSE_DRAGGED).
+                mergeWith(JavaFxObservable.fromNodeEvents(this.canvas, MouseEvent.MOUSE_PRESSED)).
+                map(event -> this.map);
+    }
+
+    public void setBrush(Map brush) {
+        this.brush = brush;
+    }
+
+    private void changeMap(MouseEvent event) {
+        calcCellUnderCursor(event);
+        if (this.rowUnderCursor != null && this.columnUnderCursor != null) {
+            MouseButton mouseButton = event.getButton();
+            boolean isPrimary = MouseButton.PRIMARY.equals(mouseButton);
+            boolean isSecondary = MouseButton.SECONDARY.equals(mouseButton);
+            if (isPrimary || isSecondary) {
+                int fieldHeight = getFieldHeight();
+                int fieldWidth = getFieldWidth();
+                int brushHeight = this.brush.getHeight();
+                int brushWidth = this.brush.getWidth();
+
+                for (int row = 0; row < brushHeight; row++) {
+                    for (int column = 0; column < brushWidth; column++) {
+                        if (this.brush.getCell(row, column)) {
+                            this.map.setCell(
+                                    (this.rowUnderCursor + row - brushHeight / 2) % fieldHeight,
+                                    (this.columnUnderCursor + column - brushWidth / 2) % fieldWidth,
+                                    isPrimary
+                            );
+                        }
+                    }
                 }
-            } else {
-                clearRowsUnderCursor();
+                redraw();
             }
-        };
-        this.canvas.setOnMouseDragged(changingCellsHandler);
-        this.canvas.setOnMousePressed(changingCellsHandler);
+        } else {
+            clearRowsUnderCursor();
+        }
     }
 
     private void calcCellUnderCursor(MouseEvent event) {
@@ -106,9 +139,9 @@ public class FieldCanvas {
         gc.setFill(Color.GRAY);
         gc.fillRect(0, 0, this.canvas.getWidth(), this.canvas.getHeight());
 
-        for (int i = 0; i < getFieldHeight(); i++) {
-            for (int j = 0; j < getFieldWidth(); j++) {
-                drawCalculatedCell(i, j);
+        for (int row = 0; row < getFieldHeight(); row++) {
+            for (int column = 0; column < getFieldWidth(); column++) {
+                drawCalculatedCell(row, column);
             }
         }
 
@@ -118,7 +151,20 @@ public class FieldCanvas {
     private void drawCellsUnderCursor(GraphicsContext gc) {
         if (this.rowUnderCursor != null && this.columnUnderCursor != null) {
             gc.setFill(new Color(1, 1, 1, 0.5));
-            drawCell(gc, this.rowUnderCursor, this.columnUnderCursor);
+            int fieldHeight = getFieldHeight();
+            int fieldWidth = getFieldWidth();
+            int brushHeight = this.brush.getHeight();
+            int brushWidth = this.brush.getWidth();
+
+            for (int row = 0; row < brushHeight; row++) {
+                for (int column = 0; column < brushWidth; column++) {
+                    if (this.brush.getCell(row, column)) {
+                        drawCell(gc,
+                                (this.rowUnderCursor + row - brushHeight / 2) % fieldHeight,
+                                (this.columnUnderCursor + column - brushWidth / 2) % fieldWidth);
+                    }
+                }
+            }
         }
     }
 

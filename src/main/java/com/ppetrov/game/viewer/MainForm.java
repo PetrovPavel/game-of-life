@@ -53,7 +53,7 @@ public class MainForm extends Application {
 
         createMainCanvas(leftPane);
         createSettingsPane(leftPane);
-        createTemplatePane(root);
+        createTemplateCanvas(root);
 
         startGame();
 
@@ -131,7 +131,7 @@ public class MainForm extends Application {
         parent.getChildren().add(settingsGroup);
     }
 
-    private void createTemplatePane(Pane parent) {
+    private void createTemplateCanvas(Pane parent) {
         VBox templatePane = new VBox();
         parent.getChildren().add(templatePane);
 
@@ -140,6 +140,8 @@ public class MainForm extends Application {
         this.templateCanvas = new FieldCanvas(templatePane);
         this.templateCanvas.setPrefSize(100, 100);
         this.templateCanvas.setMap(this.template);
+
+        this.templateCanvas.getMapChanges().subscribe(this.mainCanvas::setBrush);
     }
 
     private String getSpeedInSecondsString(double speedInMillis) {
