@@ -19,12 +19,12 @@ public class ObservableEx<T> extends Observable<T> {
         super(f);
     }
 
-    public static <T> ObservableEx<T> create(OnSubscribe<T> f) {
+    public static <T> ObservableEx<T> createEx(OnSubscribe<T> f) {
         return new ObservableEx<>(hook.onCreate(f));
     }
 
     public static ObservableEx<Long> interval(Supplier<Integer> periodFunc, TimeUnit timeUnit) {
-        return ObservableEx.create(new Observable.OnSubscribe<Long>() {
+        return ObservableEx.createEx(new Observable.OnSubscribe<Long>() {
             private Long value = 0L;
 
             @Override
