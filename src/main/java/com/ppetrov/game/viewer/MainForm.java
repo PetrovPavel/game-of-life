@@ -27,8 +27,8 @@ public class MainForm extends Application {
     private Game game;
     private Subscription gameSubscription;
 
-    private Observable<Boolean> pauseObservable;
-    private Observable<Boolean> nextStepObservable;
+    private Observable<Boolean> pause;
+    private Observable<Boolean> next;
 
     private Map template;
 
@@ -85,7 +85,7 @@ public class MainForm extends Application {
         pauseButton.setTooltip(new Tooltip("Pause"));
         pauseButton.setGraphic(new ImageView("/pause.png"));
 
-        this.pauseObservable = Observable.just(true).mergeWith(
+        this.pause = Observable.just(true).mergeWith(
                 JavaFxObservable.fromActionEvents(pauseButton).
                         map(event -> false).mergeWith(
                         JavaFxObservable.fromActionEvents(resumeButton).
@@ -109,7 +109,7 @@ public class MainForm extends Application {
         Button nextStepButton = new Button();
         nextStepButton.setTooltip(new Tooltip("Next Step"));
         nextStepButton.setGraphic(new ImageView("/step.png"));
-        this.nextStepObservable =
+        this.next =
                 JavaFxObservable.fromActionEvents(nextStepButton).map(event -> true);
 
         Button restartButton = new Button();
@@ -152,7 +152,7 @@ public class MainForm extends Application {
     }
 
     private void startGame() {
-        this.gameSubscription = this.game.startGame(this.pauseObservable, this.nextStepObservable).
+        this.gameSubscription = this.game.startGame(this.pause, this.next).
                 subscribe(map -> {
                     this.mainCanvas.setMap(map);
                     Platform.runLater(this.mainCanvas::redraw);

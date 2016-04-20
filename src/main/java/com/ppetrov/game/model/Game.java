@@ -15,14 +15,11 @@ public class Game {
         this.speed = 500;
     }
 
-    public Observable<Map> startGame(Observable<Boolean> pauseObservable,
-                                     Observable<Boolean> nextStepObservable) {
-        return Observable.combineLatest(
-                ObservableEx.interval(this::getSpeed, TimeUnit.MILLISECONDS),
-                pauseObservable,
-                (tick, play) -> play
-        ).filter(Boolean::booleanValue).
-                mergeWith(nextStepObservable).
+    public Observable<Map> startGame(Observable<Boolean> pause, Observable<Boolean> next) {
+        return ObservableEx.interval(this::getSpeed, TimeUnit.MILLISECONDS).
+                withLatestFrom(pause, (tick, play) -> play).
+                filter(Boolean::booleanValue).
+                mergeWith(next).
                 scan(getDefaultMap(), (currentMap, tick) -> this.rules.nextState(currentMap));
     }
 
