@@ -27,6 +27,7 @@ public class MainForm extends Application {
     private Game game;
     private Subscription gameSubscription;
 
+    private Observable<Integer> speed;
     private Observable<Boolean> pause;
     private Observable<Boolean> next;
 
@@ -93,17 +94,15 @@ public class MainForm extends Application {
                 ));
 
         Label speedLabel = new Label();
-        Slider speedSlider = new Slider(-1000, -100, -this.game.getSpeed());
+        Slider speedSlider = new Slider(-1000, -100, -500);
         speedSlider.setShowTickMarks(true);
         speedSlider.setMajorTickUnit(100);
         speedSlider.setBlockIncrement(100);
         speedSlider.setTooltip(new Tooltip("Speed"));
-        Observable<Integer> sliderProperty =
-                JavaFxObservable.fromObservableValue(speedSlider.valueProperty()).
-                        map(change -> Math.abs(change.intValue()));
-        sliderProperty.subscribe(this.game::setSpeed);
+        this.speed = JavaFxObservable.fromObservableValue(speedSlider.valueProperty()).
+                map(change -> Math.abs(change.intValue()));
         speedLabel.textProperty().bind(JavaFxSubscriber.toBinding(
-                sliderProperty.map(this::getSpeedInSecondsString)
+                speed.map(this::getSpeedInSecondsString)
         ));
 
         Button nextStepButton = new Button();
@@ -154,7 +153,7 @@ public class MainForm extends Application {
     }
 
     private void startGame() {
-        this.gameSubscription = this.game.startGame(this.pause, this.next).
+        this.gameSubscription = this.game.startGame(this.speed, this.pause, this.next).
                 subscribe(map -> {
                     this.mainCanvas.setMap(map);
                     Platform.runLater(this.mainCanvas::redraw);
