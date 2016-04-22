@@ -28,17 +28,11 @@ public class Map {
     }
 
     public boolean getCell(int row, int column) {
-        row = fixRow(row);
-        column = fixColumn(row, column);
-
-        return this.field[row][column];
+        return this.field[fixRow(row)][fixColumn(column)];
     }
 
     public void setCell(int row, int column, boolean value) {
-        row = fixRow(row);
-        column = fixColumn(row, column);
-
-        this.field[row][column] = value;
+        this.field[fixRow(row)][fixColumn(column)] = value;
     }
 
     public Boolean[][] getField() {
@@ -54,22 +48,22 @@ public class Map {
         }
     }
 
-    private int fixRow(int row) {
-        if (row == -1) {
-            row = this.field.length - 1;
+    public int fixRow(int row) {
+        if (row < 0) {
+            row = this.field.length + row;
         }
-        if (row == this.field.length) {
-            row = 0;
+        if (row > this.field.length - 1) {
+            row -= this.field.length;
         }
         return row;
     }
 
-    private int fixColumn(int row, int column) {
-        if (column == -1) {
-            column = this.field[row].length - 1;
+    public int fixColumn(int column) {
+        if (column < 0) {
+            column = this.field[0].length + column;
         }
-        if (column == this.field[row].length) {
-            column = 0;
+        if (column > this.field[0].length - 1) {
+            column -= this.field[0].length;
         }
         return column;
     }

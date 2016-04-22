@@ -99,8 +99,6 @@ public class FieldCanvas {
             boolean isPrimary = MouseButton.PRIMARY.equals(mouseButton);
             boolean isSecondary = MouseButton.SECONDARY.equals(mouseButton);
             if (isPrimary || isSecondary) {
-                int fieldHeight = getFieldHeight();
-                int fieldWidth = getFieldWidth();
                 int brushHeight = this.brush.getHeight();
                 int brushWidth = this.brush.getWidth();
 
@@ -108,8 +106,8 @@ public class FieldCanvas {
                     for (int column = 0; column < brushWidth; column++) {
                         if (this.brush.getCell(row, column)) {
                             this.map.setCell(
-                                    (this.rowUnderCursor + row - brushHeight / 2) % fieldHeight,
-                                    (this.columnUnderCursor + column - brushWidth / 2) % fieldWidth,
+                                    this.rowUnderCursor + row - brushHeight / 2,
+                                    this.columnUnderCursor + column - brushWidth / 2,
                                     isPrimary
                             );
                         }
@@ -151,8 +149,6 @@ public class FieldCanvas {
     private void drawCellsUnderCursor(GraphicsContext gc) {
         if (this.rowUnderCursor != null && this.columnUnderCursor != null) {
             gc.setFill(new Color(1, 1, 1, 0.5));
-            int fieldHeight = getFieldHeight();
-            int fieldWidth = getFieldWidth();
             int brushHeight = this.brush.getHeight();
             int brushWidth = this.brush.getWidth();
 
@@ -160,8 +156,8 @@ public class FieldCanvas {
                 for (int column = 0; column < brushWidth; column++) {
                     if (this.brush.getCell(row, column)) {
                         drawCell(gc,
-                                (this.rowUnderCursor + row - brushHeight / 2) % fieldHeight,
-                                (this.columnUnderCursor + column - brushWidth / 2) % fieldWidth);
+                                this.map.fixRow(this.rowUnderCursor + row - brushHeight / 2),
+                                this.map.fixColumn(this.columnUnderCursor + column - brushWidth / 2));
                     }
                 }
             }
