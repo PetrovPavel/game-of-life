@@ -1,6 +1,5 @@
 package com.ppetrov.game.model;
 
-import com.ppetrov.game.observable.ObservableEx;
 import rx.Observable;
 
 import java.util.concurrent.TimeUnit;
@@ -15,7 +14,7 @@ public class Game {
 
     public Observable<Map> startGame(Observable<Integer> speed, Observable<Boolean> pause, Observable<Boolean> next) {
         return speed.switchMap(currentSpeed ->
-                ObservableEx.interval(() -> currentSpeed, TimeUnit.MILLISECONDS)).
+                Observable.interval(currentSpeed, TimeUnit.MILLISECONDS)).
                 withLatestFrom(pause, (tick, play) -> play).
                 filter(Boolean::booleanValue).
                 mergeWith(next).
