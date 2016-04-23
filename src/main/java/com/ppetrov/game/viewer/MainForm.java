@@ -1,6 +1,7 @@
 package com.ppetrov.game.viewer;
 
 import com.ppetrov.game.model.Game;
+import com.ppetrov.game.model.IRules;
 import com.ppetrov.game.model.Map;
 import com.ppetrov.game.model.Rules;
 import javafx.application.Application;
@@ -22,20 +23,22 @@ import rx.subscribers.JavaFxSubscriber;
 public class MainForm extends Application {
 
     private FieldCanvas mainCanvas;
-    private FieldCanvas templateCanvas;
+    private FieldCanvas brushCanvas;
 
     private Game game;
     private Subscription gameSubscription;
 
+    private Observable<IRules> rules;
     private Observable<Integer> speed;
     private Observable<Boolean> pause;
     private Observable<Boolean> next;
 
-    private Map template;
+    private Map brush;
 
     public MainForm() {
-        this.game = new Game(Rules.DEFAULT);
-        this.template = new Map(new Boolean[][]{
+        this.game = new Game();
+        this.rules = Observable.just(Rules.DEFAULT);
+        this.brush = new Map(new Boolean[][]{
                 {false, false, false, false, false},
                 {false, false, false, false, false},
                 {false, false, true, false, false},
@@ -134,13 +137,13 @@ public class MainForm extends Application {
         VBox templatePane = new VBox();
         parent.getChildren().add(templatePane);
 
-        templatePane.getChildren().add(new Label("Template:"));
+        templatePane.getChildren().add(new Label("Brush:"));
 
-        this.templateCanvas = new FieldCanvas(templatePane);
-        this.templateCanvas.setPrefSize(100, 100);
-        this.templateCanvas.setMap(this.template);
+        this.brushCanvas = new FieldCanvas(templatePane);
+        this.brushCanvas.setPrefSize(100, 100);
+        this.brushCanvas.setMap(this.brush);
 
-        this.templateCanvas.getMapChanges().subscribe(this.mainCanvas::setBrush);
+        this.brushCanvas.getMapChanges().subscribe(this.mainCanvas::setBrush);
     }
 
     private String getSpeedInSecondsString(double speedInMillis) {
@@ -153,7 +156,7 @@ public class MainForm extends Application {
     }
 
     private void startGame() {
-        this.gameSubscription = this.game.startGame(this.speed, this.pause, this.next).
+        this.gameSubscription = this.game.startGame(this.rules, this.speed, this.pause, this.next).
                 subscribe(map -> {
                     this.mainCanvas.setMap(map);
                     Platform.runLater(this.mainCanvas::redraw);

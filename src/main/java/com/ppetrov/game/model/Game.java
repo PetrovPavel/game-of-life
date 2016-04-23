@@ -6,19 +6,17 @@ import java.util.concurrent.TimeUnit;
 
 public class Game {
 
-    private IRules rules;
-
-    public Game(IRules rules) {
-        this.rules = rules;
-    }
-
-    public Observable<Map> startGame(Observable<Integer> speed, Observable<Boolean> pause, Observable<Boolean> next) {
+    public Observable<Map> startGame(Observable<IRules> rules,
+                                     Observable<Integer> speed,
+                                     Observable<Boolean> pause,
+                                     Observable<Boolean> next) {
         return speed.switchMap(currentSpeed ->
                 Observable.interval(currentSpeed, TimeUnit.MILLISECONDS)).
                 withLatestFrom(pause, (tick, play) -> play).
                 filter(Boolean::booleanValue).
                 mergeWith(next).
-                scan(getDefaultMap(), (currentMap, tick) -> this.rules.nextState(currentMap));
+                withLatestFrom(rules, (play, currentRules) -> currentRules).
+                scan(getDefaultMap(), (currentMap, currentRules) -> currentRules.nextState(currentMap));
     }
 
     private static Map getDefaultMap() {
