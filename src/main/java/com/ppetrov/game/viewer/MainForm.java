@@ -63,7 +63,10 @@ public class MainForm extends Application {
 
         HBox.setHgrow(leftPane, Priority.ALWAYS);
 
-        primaryStage.setScene(new Scene(root));
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add("styles/main.css");
+
+        primaryStage.setScene(scene);
         primaryStage.show();
         root.requestFocus();
     }
@@ -83,11 +86,11 @@ public class MainForm extends Application {
     private void createSettingsPane(Pane parent) {
         Button resumeButton = new Button();
         resumeButton.setTooltip(new Tooltip("Resume"));
-        resumeButton.setGraphic(new ImageView("/resume.png"));
+        resumeButton.setGraphic(new ImageView("/icons/resume.png"));
 
         Button pauseButton = new Button();
         pauseButton.setTooltip(new Tooltip("Pause"));
-        pauseButton.setGraphic(new ImageView("/pause.png"));
+        pauseButton.setGraphic(new ImageView("/icons/pause.png"));
 
         this.pause = Observable.just(true).mergeWith(
                 JavaFxObservable.fromActionEvents(pauseButton).
@@ -110,13 +113,13 @@ public class MainForm extends Application {
 
         Button nextStepButton = new Button();
         nextStepButton.setTooltip(new Tooltip("Next Step"));
-        nextStepButton.setGraphic(new ImageView("/step.png"));
+        nextStepButton.setGraphic(new ImageView("/icons/step.png"));
         this.next =
                 JavaFxObservable.fromActionEvents(nextStepButton).map(event -> true);
 
         Button restartButton = new Button();
         restartButton.setTooltip(new Tooltip("Restart Game"));
-        restartButton.setGraphic(new ImageView("/restart.png"));
+        restartButton.setGraphic(new ImageView("/icons/restart.png"));
         restartButton.setOnAction(event -> restartGame());
 
         ToolBar toolBar = new ToolBar(
@@ -128,7 +131,6 @@ public class MainForm extends Application {
 
         HBox settingsGroup = new HBox(toolBar);
         settingsGroup.setAlignment(Pos.CENTER);
-        toolBar.setStyle("-fx-background-color:transparent;");
 
         parent.getChildren().add(settingsGroup);
     }

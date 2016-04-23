@@ -52,7 +52,6 @@ public class FieldCanvas {
         createFieldCanvas();
 
         this.pane.setContent(this.canvas);
-        this.pane.setStyle("-fx-background-color:transparent;");
 
         this.canvas.widthProperty().bind(
                 this.pane.widthProperty().
