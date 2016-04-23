@@ -1,8 +1,8 @@
 package com.ppetrov.game.viewer;
 
-import com.ppetrov.game.model.DefaultRules;
 import com.ppetrov.game.model.Game;
 import com.ppetrov.game.model.Map;
+import com.ppetrov.game.model.Rules;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -34,7 +34,7 @@ public class MainForm extends Application {
     private Map template;
 
     public MainForm() {
-        this.game = new Game(new DefaultRules());
+        this.game = new Game(Rules.DEFAULT);
         this.template = new Map(new Boolean[][]{
                 {false, false, false, false, false},
                 {false, false, false, false, false},
