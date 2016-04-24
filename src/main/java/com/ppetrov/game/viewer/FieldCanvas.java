@@ -48,19 +48,12 @@ public class FieldCanvas {
     }
 
     private void create() {
-        this.pane = new ScrollPane();
         createFieldCanvas();
-
+        this.pane = new ScrollPane();
         this.pane.setContent(this.canvas);
 
-        this.canvas.widthProperty().bind(
-                this.pane.widthProperty().
-                        subtract(2)
-        );
-        this.canvas.heightProperty().bind(
-                this.pane.heightProperty().
-                        subtract(2)
-        );
+        this.canvas.widthProperty().bind(this.pane.widthProperty().subtract(2));
+        this.canvas.heightProperty().bind(this.pane.heightProperty().subtract(2));
     }
 
     private void createFieldCanvas() {
