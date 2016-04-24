@@ -17,8 +17,6 @@ import rx.observables.JavaFxObservable;
 
 public class FieldCanvas {
 
-    private static Map DEFAULT_BRUSH = new Map(new Boolean[][]{{true}});
-
     private ScrollPane pane;
     private Canvas canvas;
 
@@ -27,10 +25,9 @@ public class FieldCanvas {
     private Integer columnUnderCursor;
     private Integer rowUnderCursor;
 
-    private Map brush;
+    private Map brush = new Map(new Boolean[][]{{true}});
 
     public FieldCanvas(Pane parent) {
-        this.brush = DEFAULT_BRUSH;
         create();
         parent.getChildren().add(this.pane);
     }

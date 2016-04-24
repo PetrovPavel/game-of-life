@@ -33,18 +33,9 @@ public class MainForm extends Application {
     private Observable<Boolean> pause;
     private Observable<Boolean> next;
 
-    private Map brush;
-
     public MainForm() {
         this.game = new Game();
         this.rules = Observable.just(Rules.DEFAULT);
-        this.brush = new Map(new Boolean[][]{
-                {false, false, false, false, false},
-                {false, false, false, false, false},
-                {false, false, true, false, false},
-                {false, false, false, false, false},
-                {false, false, false, false, false}
-        });
     }
 
     @Override
@@ -143,7 +134,13 @@ public class MainForm extends Application {
 
         this.brushCanvas = new FieldCanvas(templatePane);
         this.brushCanvas.setPrefSize(100, 100);
-        this.brushCanvas.setMap(this.brush);
+        this.brushCanvas.setMap(new Map(new Boolean[][]{
+                {false, false, false, false, false},
+                {false, false, false, false, false},
+                {false, false, true, false, false},
+                {false, false, false, false, false},
+                {false, false, false, false, false}
+        }));
 
         this.brushCanvas.getMapChanges().subscribe(this.mainCanvas::setBrush);
     }
