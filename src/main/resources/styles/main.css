@@ -5,3 +5,11 @@
 .scroll-pane {
     -fx-background-color: transparent;
 }
+
+.tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.tab-header-area {
+    -fx-padding: 0;
+}

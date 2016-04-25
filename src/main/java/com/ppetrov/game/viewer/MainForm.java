@@ -7,6 +7,7 @@ import com.ppetrov.game.model.Rules;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
@@ -47,8 +48,8 @@ public class MainForm extends Application {
         root.getChildren().add(leftPane);
 
         createMainCanvas(leftPane);
-        createSettingsPane(leftPane);
-        createTemplateCanvas(root);
+        createGameFlowPane(leftPane);
+        createSettingsPane(root);
 
         startGame();
 
@@ -74,7 +75,7 @@ public class MainForm extends Application {
         super.stop();
     }
 
-    private void createSettingsPane(Pane parent) {
+    private void createGameFlowPane(Pane parent) {
         Button resumeButton = new Button();
         resumeButton.setTooltip(new Tooltip("Resume"));
         resumeButton.setGraphic(new ImageView("/icons/resume.png"));
@@ -126,11 +127,21 @@ public class MainForm extends Application {
         parent.getChildren().add(settingsGroup);
     }
 
-    private void createTemplateCanvas(Pane parent) {
-        VBox templatePane = new VBox();
-        parent.getChildren().add(templatePane);
+    private void createSettingsPane(Pane parent) {
+        TabPane tabPane = new TabPane();
+        tabPane.setSide(Side.LEFT);
 
-        templatePane.getChildren().add(new Label("Brush:"));
+        createBrushTab(tabPane);
+        createRulesTab(tabPane);
+
+        parent.getChildren().add(tabPane);
+    }
+
+    private void createBrushTab(TabPane tabPane) {
+        Tab brushTab = new Tab("Brush");
+        brushTab.setClosable(false);
+
+        VBox templatePane = new VBox();
 
         this.brushCanvas = new FieldCanvas(templatePane);
         this.brushCanvas.setPrefSize(100, 100);
@@ -143,6 +154,16 @@ public class MainForm extends Application {
         }));
 
         this.brushCanvas.getMapChanges().subscribe(this.mainCanvas::setBrush);
+
+        brushTab.setContent(templatePane);
+        tabPane.getTabs().add(brushTab);
+    }
+
+    private void createRulesTab(TabPane tabPane) {
+        Tab rulesTab = new Tab("Rules");
+        rulesTab.setClosable(false);
+
+        tabPane.getTabs().add(rulesTab);
     }
 
     private String getSpeedInSecondsString(double speedInMillis) {
