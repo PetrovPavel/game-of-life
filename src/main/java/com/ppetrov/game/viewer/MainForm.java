@@ -6,15 +6,14 @@ import com.ppetrov.game.model.Map;
 import com.ppetrov.game.model.Rules;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
+import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import rx.Observable;
 import rx.Subscription;
@@ -141,9 +140,9 @@ public class MainForm extends Application {
         Tab brushTab = new Tab("Brush");
         brushTab.setClosable(false);
 
-        VBox templatePane = new VBox();
+        VBox brushPane = new VBox();
 
-        this.brushCanvas = new FieldCanvas(templatePane);
+        this.brushCanvas = new FieldCanvas(brushPane);
         this.brushCanvas.setPrefSize(100, 100);
         this.brushCanvas.setMap(new Map(new Boolean[][]{
                 {false, false, false, false, false},
@@ -155,13 +154,41 @@ public class MainForm extends Application {
 
         this.brushCanvas.getMapChanges().subscribe(this.mainCanvas::setBrush);
 
-        brushTab.setContent(templatePane);
+        brushTab.setContent(brushPane);
         tabPane.getTabs().add(brushTab);
     }
 
     private void createRulesTab(TabPane tabPane) {
         Tab rulesTab = new Tab("Rules");
         rulesTab.setClosable(false);
+
+        VBox rulesPane = new VBox();
+        rulesPane.getChildren().add(new Label("Born:"));
+
+        GridPane bornPane = new GridPane();
+        for (int i = 0; i < 8; i++) {
+            int count = i + 1;
+            ToggleButton bornButton = new ToggleButton(String.valueOf(count));
+
+            GridPane.setConstraints(bornButton, i % 4, i / 4);
+            GridPane.setHalignment(bornButton, HPos.CENTER);
+            GridPane.setValignment(bornButton, VPos.CENTER);
+            GridPane.setHgrow(bornButton, Priority.ALWAYS);
+
+            if (count == 3) {
+                bornButton.setSelected(true);
+            }
+
+//            this.rules = JavaFxObservable.fromActionEvents(bornButton).map(event -> bornButton.isSelected()).
+//                    withLatestFrom(this.rules,
+//                            (selected, currentRules) -> currentRules.setBorn(count, selected)
+//                    );
+
+            bornPane.getChildren().add(bornButton);
+        }
+
+        rulesPane.getChildren().add(bornPane);
+        rulesTab.setContent(rulesPane);
 
         tabPane.getTabs().add(rulesTab);
     }

@@ -1,20 +1,29 @@
 package com.ppetrov.game.model;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Rules implements IRules {
 
     public static Rules DEFAULT = new Rules(new int[]{3}, new int[]{2, 3});
 
-    private int[] born;
-    private int[] survives;
+    private Set<Integer> born;
+    private Set<Integer> survives;
 
     public Rules(int[] born, int[] survives) {
-        this.born = Arrays.copyOf(born, born.length);
-        this.survives = Arrays.copyOf(survives, survives.length);
+        this.born = Arrays.stream(born).boxed().collect(Collectors.toSet());
+        this.survives = Arrays.stream(survives).boxed().collect(Collectors.toSet());
     }
 
+    private Rules(Set<Integer> born, Set<Integer> survives) {
+        this.born = born;
+        this.survives = survives;
+    }
+
+    @Override
     public Map nextState(Map map) {
         Boolean[][] nextStateField = map.getField();
 
@@ -22,10 +31,10 @@ public class Rules implements IRules {
                 row -> IntStream.range(0, map.getWidth()).forEach(
                         column -> {
                             int aliveNeighbours = countOfAliveNeighbours(map, row, column);
-                            if (IntStream.of(this.born).anyMatch(val -> val == aliveNeighbours) &&
+                            if (this.born.contains(aliveNeighbours) &&
                                     !map.getCell(row, column)) {
                                 nextStateField[row][column] = true;
-                            } else if (IntStream.of(this.survives).noneMatch(val -> val == aliveNeighbours)) {
+                            } else if (!this.survives.contains(aliveNeighbours)) {
                                 nextStateField[row][column] = false;
                             }
                         }
@@ -33,6 +42,34 @@ public class Rules implements IRules {
         );
 
         return new Map(nextStateField);
+    }
+
+    @Override
+    public IRules setBorn(int count, boolean born) {
+        if (born && !this.born.contains(count)) {
+            Set<Integer> bornCopy = new HashSet<>(this.born);
+            bornCopy.add(count);
+            return new Rules(bornCopy, this.survives);
+        } else if (!born && this.born.contains(count)) {
+            Set<Integer> bornCopy = new HashSet<>(this.born);
+            bornCopy.remove(count);
+            return new Rules(bornCopy, this.survives);
+        }
+        return this;
+    }
+
+    @Override
+    public IRules setSurvives(int count, boolean survives) {
+        if (survives && !this.survives.contains(count)) {
+            Set<Integer> survivesCopy = new HashSet<>(this.survives);
+            survivesCopy.add(count);
+            return new Rules(this.born, survivesCopy);
+        } else if (!survives && this.survives.contains(count)) {
+            Set<Integer> survivesCopy = new HashSet<>(this.survives);
+            survivesCopy.remove(count);
+            return new Rules(this.born, survivesCopy);
+        }
+        return this;
     }
 
     private int countOfAliveNeighbours(Map map, int row, int column) {
