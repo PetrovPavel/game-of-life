@@ -165,10 +165,12 @@ public class MainForm extends Application {
         VBox rulesPane = new VBox();
         rulesPane.getChildren().add(new Label("Born:"));
 
+        Observable<ToggleButton> bornEvents = Observable.never();
         GridPane bornPane = new GridPane();
         for (int i = 0; i < 8; i++) {
             int count = i + 1;
             ToggleButton bornButton = new ToggleButton(String.valueOf(count));
+            bornButton.setId(String.valueOf(count));
 
             GridPane.setConstraints(bornButton, i % 4, i / 4);
             GridPane.setHalignment(bornButton, HPos.CENTER);
@@ -176,16 +178,23 @@ public class MainForm extends Application {
             GridPane.setHgrow(bornButton, Priority.ALWAYS);
 
             if (count == 3) {
+                bornEvents = bornEvents.mergeWith(Observable.just(bornButton));
                 bornButton.setSelected(true);
             }
 
-//            this.rules = JavaFxObservable.fromActionEvents(bornButton).map(event -> bornButton.isSelected()).
-//                    withLatestFrom(this.rules,
-//                            (selected, currentRules) -> currentRules.setBorn(count, selected)
-//                    );
+            bornEvents = bornEvents.mergeWith(
+                    JavaFxObservable.fromActionEvents(bornButton).
+                            map(event -> bornButton)
+            );
 
             bornPane.getChildren().add(bornButton);
         }
+
+        this.rules = bornEvents.withLatestFrom(
+                this.rules,
+                (button, currentRules) ->
+                        currentRules.setBorn(Integer.valueOf(button.getId()), button.isSelected())
+        );
 
         rulesPane.getChildren().add(bornPane);
         rulesTab.setContent(rulesPane);
