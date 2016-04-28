@@ -1,19 +1,19 @@
 package com.ppetrov.game.viewer;
 
 import com.ppetrov.game.model.Game;
-import com.ppetrov.game.model.IRules;
 import com.ppetrov.game.model.Map;
 import com.ppetrov.game.model.Rules;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
-import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import rx.Observable;
 import rx.Subscription;
@@ -28,14 +28,13 @@ public class MainForm extends Application {
     private Game game;
     private Subscription gameSubscription;
 
-    private Observable<IRules> rules;
+    private Observable<Rules> rules;
     private Observable<Integer> speed;
     private Observable<Boolean> pause;
     private Observable<Boolean> next;
 
     public MainForm() {
         this.game = new Game();
-        this.rules = Observable.just(Rules.DEFAULT);
     }
 
     @Override
@@ -163,42 +162,25 @@ public class MainForm extends Application {
         rulesTab.setClosable(false);
 
         VBox rulesPane = new VBox();
-        rulesPane.getChildren().add(new Label("Born:"));
 
-        Observable<ToggleButton> bornEvents = Observable.never();
-        GridPane bornPane = new GridPane();
-        for (int i = 0; i < 8; i++) {
-            int count = i + 1;
-            ToggleButton bornButton = new ToggleButton(String.valueOf(count));
-            bornButton.setId(String.valueOf(count));
+        TogglePane bornPane = new TogglePane(8, 4, 2);
+        TogglePane survivesPane = new TogglePane(8, 4, 1, 2);
 
-            GridPane.setConstraints(bornButton, i % 4, i / 4);
-            GridPane.setHalignment(bornButton, HPos.CENTER);
-            GridPane.setValignment(bornButton, VPos.CENTER);
-            GridPane.setHgrow(bornButton, Priority.ALWAYS);
+        this.rules = Observable.just(Rules.DEFAULT).
+                mergeWith(
+                        Observable.combineLatest(
+                                bornPane.getSelectionChanges(),
+                                survivesPane.getSelectionChanges(),
+                                Rules::new
+                        )
+                );
 
-            if (count == 3) {
-                bornEvents = bornEvents.mergeWith(Observable.just(bornButton));
-                bornButton.setSelected(true);
-            }
-
-            bornEvents = bornEvents.mergeWith(
-                    JavaFxObservable.fromActionEvents(bornButton).
-                            map(event -> bornButton)
-            );
-
-            bornPane.getChildren().add(bornButton);
-        }
-
-        this.rules = bornEvents.withLatestFrom(
-                this.rules,
-                (button, currentRules) ->
-                        currentRules.setBorn(Integer.valueOf(button.getId()), button.isSelected())
+        rulesPane.getChildren().addAll(
+                new Label("Born:"), bornPane,
+                new Label("Survives:"), survivesPane
         );
 
-        rulesPane.getChildren().add(bornPane);
         rulesTab.setContent(rulesPane);
-
         tabPane.getTabs().add(rulesTab);
     }
 

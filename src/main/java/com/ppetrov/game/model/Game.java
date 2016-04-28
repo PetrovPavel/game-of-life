@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Game {
 
-    public Observable<Map> startGame(Observable<IRules> rules,
+    public Observable<Map> startGame(Observable<Rules> rules,
                                      Observable<Integer> speed,
                                      Observable<Boolean> pause,
                                      Observable<Boolean> next) {
