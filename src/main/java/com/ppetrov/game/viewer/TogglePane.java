@@ -8,26 +8,32 @@ import javafx.scene.layout.Priority;
 import rx.Observable;
 import rx.observables.JavaFxObservable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class TogglePane extends GridPane {
 
     private final ToggleButton[] buttons;
     private final int countInLine;
-    private final int[] selected;
 
     /**
      * Creates a TogglePane containing ToggleButtons
      *
      * @param count       amount of ToggleButtons
      * @param countInLine amount of ToggleButtons in one line
-     * @param selected    0-based indexes of initially selected buttons
      */
-    public TogglePane(int count, int countInLine, int... selected) {
+    public TogglePane(int count, int countInLine) {
         this.buttons = new ToggleButton[count];
         this.countInLine = countInLine;
-        this.selected = Arrays.copyOf(selected, selected.length);
         create();
+    }
+
+    public void select(int... numbers) {
+        for (int number : numbers) {
+            this.buttons[number - 1].setSelected(true);
+        }
     }
 
     /**
@@ -70,10 +76,6 @@ public class TogglePane extends GridPane {
             GridPane.setHgrow(this.buttons[i], Priority.ALWAYS);
 
             getChildren().add(this.buttons[i]);
-        }
-
-        for (int selectedIndex : this.selected) {
-            this.buttons[selectedIndex].setSelected(true);
         }
     }
 

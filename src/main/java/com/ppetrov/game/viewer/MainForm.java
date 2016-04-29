@@ -163,8 +163,19 @@ public class MainForm extends Application {
 
         VBox rulesPane = new VBox();
 
-        TogglePane bornPane = new TogglePane(8, 4, 2);
-        TogglePane survivesPane = new TogglePane(8, 4, 1, 2);
+        TogglePane bornPane = new TogglePane(8, 4);
+        bornPane.select(3);
+
+        TogglePane survivesPane = new TogglePane(8, 4);
+        survivesPane.select(2, 3);
+
+        rulesPane.getChildren().addAll(
+                new Label("Born:"), bornPane,
+                new Label("Survives:"), survivesPane
+        );
+
+        rulesTab.setContent(rulesPane);
+        tabPane.getTabs().add(rulesTab);
 
         this.rules = Observable.just(Rules.DEFAULT).
                 mergeWith(
@@ -174,14 +185,6 @@ public class MainForm extends Application {
                                 Rules::new
                         )
                 );
-
-        rulesPane.getChildren().addAll(
-                new Label("Born:"), bornPane,
-                new Label("Survives:"), survivesPane
-        );
-
-        rulesTab.setContent(rulesPane);
-        tabPane.getTabs().add(rulesTab);
     }
 
     private String getSpeedInSecondsString(double speedInMillis) {
