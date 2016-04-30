@@ -17,11 +17,9 @@ import java.util.stream.IntStream;
 public class FieldCanvas extends ScrollPane {
 
     private Canvas canvas;
+    private CellUnderCursor cellUnderCursor = CellUnderCursor.NULL;
 
     private Map map;
-
-    private Integer columnUnderCursor;
-    private Integer rowUnderCursor;
 
     private Map brush = new Map(new Boolean[][]{{true}});
 
@@ -44,7 +42,7 @@ public class FieldCanvas extends ScrollPane {
 
         EventHandler<MouseEvent> canvasMouseEventHandler = event -> {
             calcCellUnderCursor(event);
-            updateCursor(event);
+            updateCursor();
             redraw();
         };
         this.canvas.setOnMouseEntered(canvasMouseEventHandler);
@@ -67,7 +65,7 @@ public class FieldCanvas extends ScrollPane {
 
     private void changeMap(MouseEvent event) {
         calcCellUnderCursor(event);
-        if (this.rowUnderCursor != null && this.columnUnderCursor != null) {
+        if (this.cellUnderCursor.exists()) {
             MouseButton mouseButton = event.getButton();
             boolean isPrimary = MouseButton.PRIMARY.equals(mouseButton);
             boolean isSecondary = MouseButton.SECONDARY.equals(mouseButton);
@@ -78,8 +76,8 @@ public class FieldCanvas extends ScrollPane {
                 IntStream.range(0, brushHeight).forEach(row ->
                         IntStream.range(0, brushHeight).filter(column -> this.brush.isSet(row, column)).
                                 forEach(column -> this.map.setCell(
-                                        this.rowUnderCursor + row - brushHeight / 2,
-                                        this.columnUnderCursor + column - brushWidth / 2,
+                                        this.cellUnderCursor.row + row - brushHeight / 2,
+                                        this.cellUnderCursor.column + column - brushWidth / 2,
                                         isPrimary
                                         )
                                 )
@@ -92,15 +90,13 @@ public class FieldCanvas extends ScrollPane {
     }
 
     private void calcCellUnderCursor(MouseEvent event) {
-        double x = event.getX();
-        double y = event.getY();
-        this.rowUnderCursor = getCellRowFromCanvas(y);
-        this.columnUnderCursor = getCellColumnFromCanvas(x);
+        this.cellUnderCursor = new CellUnderCursor(
+                getCellRowFromCanvas(event.getY()), getCellColumnFromCanvas(event.getX())
+        );
     }
 
-    private void updateCursor(MouseEvent event) {
-        boolean inDrawingArea = isInDrawingArea(event.getX(), event.getY());
-        this.canvas.setCursor(inDrawingArea ? Cursor.HAND : Cursor.DEFAULT);
+    private void updateCursor() {
+        this.canvas.setCursor(this.cellUnderCursor.exists() ? Cursor.HAND : Cursor.DEFAULT);
     }
 
     public void redraw() {
@@ -108,17 +104,17 @@ public class FieldCanvas extends ScrollPane {
         gc.setFill(Color.GRAY);
         gc.fillRect(0, 0, this.canvas.getWidth(), this.canvas.getHeight());
 
-        for (int row = 0; row < getFieldHeight(); row++) {
-            for (int column = 0; column < getFieldWidth(); column++) {
-                drawCalculatedCell(row, column);
-            }
-        }
+        IntStream.range(0, getFieldHeight()).forEach(row ->
+                IntStream.range(0, getFieldWidth()).forEach(column ->
+                        drawCalculatedCell(row, column)
+                )
+        );
 
         drawCellsUnderCursor(gc);
     }
 
     private void drawCellsUnderCursor(GraphicsContext gc) {
-        if (this.rowUnderCursor != null && this.columnUnderCursor != null) {
+        if (this.cellUnderCursor.exists()) {
             gc.setFill(new Color(1, 1, 1, 0.5));
             int brushHeight = this.brush.getHeight();
             int brushWidth = this.brush.getWidth();
@@ -127,8 +123,8 @@ public class FieldCanvas extends ScrollPane {
             IntStream.range(0, brushHeight).forEach(row ->
                     IntStream.range(0, brushHeight).filter(column -> this.brush.isSet(row, column)).
                             forEach(column -> drawCell(gc,
-                                    this.map.fixRow(this.rowUnderCursor + row - brushHeight / 2),
-                                    this.map.fixColumn(this.columnUnderCursor + column - brushWidth / 2))
+                                    this.map.fixRow(this.cellUnderCursor.row + row - brushHeight / 2),
+                                    this.map.fixColumn(this.cellUnderCursor.column + column - brushWidth / 2))
                             )
             );
         }
@@ -136,19 +132,14 @@ public class FieldCanvas extends ScrollPane {
 
     private void drawCalculatedCell(int row, int column) {
         GraphicsContext gc = this.canvas.getGraphicsContext2D();
-        boolean isAlive = this.map.isSet(row, column);
-        gc.setFill(isAlive ? Color.DARKGREEN : Color.SANDYBROWN);
+        gc.setFill(this.map.isSet(row, column) ? Color.DARKGREEN : Color.SANDYBROWN);
         drawCell(gc, row, column);
     }
 
     private void drawCell(GraphicsContext gc, int row, int column) {
         double cellSize = getCellSize();
-        int fieldWidth = getFieldWidth();
-        int fieldHeight = getFieldHeight();
-
-        double startX = (this.canvas.getWidth() - cellSize * fieldWidth) / 2;
-        double startY = (this.canvas.getHeight() - cellSize * fieldHeight) / 2;
-
+        double startX = (this.canvas.getWidth() - cellSize * getFieldWidth()) / 2;
+        double startY = (this.canvas.getHeight() - cellSize * getFieldHeight()) / 2;
         int borderWidth = 1;
 
         gc.fillRect(
@@ -160,8 +151,7 @@ public class FieldCanvas extends ScrollPane {
     }
 
     private void clearRowsUnderCursor() {
-        this.rowUnderCursor = null;
-        this.columnUnderCursor = null;
+        this.cellUnderCursor = CellUnderCursor.NULL;
         redraw();
     }
 
@@ -191,12 +181,6 @@ public class FieldCanvas extends ScrollPane {
         return null;
     }
 
-    private boolean isInDrawingArea(double x, double y) {
-        Integer row = getCellColumnFromCanvas(x);
-        Integer column = getCellRowFromCanvas(y);
-        return row != null && column != null;
-    }
-
     public double getCellSize() {
         return Math.min(
                 this.canvas.getWidth() / getFieldWidth(),
@@ -210,6 +194,22 @@ public class FieldCanvas extends ScrollPane {
 
     private int getFieldHeight() {
         return this.map != null ? this.map.getHeight() : 0;
+    }
+
+    private static class CellUnderCursor {
+        final static CellUnderCursor NULL = new CellUnderCursor(null, null);
+
+        final Integer row;
+        final Integer column;
+
+        CellUnderCursor(Integer row, Integer column) {
+            this.row = row;
+            this.column = column;
+        }
+
+        boolean exists() {
+            return this.row != null && this.column != null;
+        }
     }
 
 }
