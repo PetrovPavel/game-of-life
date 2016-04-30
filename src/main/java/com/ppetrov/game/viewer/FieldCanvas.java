@@ -8,7 +8,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import rx.Observable;
 import rx.observables.JavaFxObservable;
@@ -24,21 +23,16 @@ public class FieldCanvas extends ScrollPane {
 
     private Map brush = new Map(new Boolean[][]{{true}});
 
-    public FieldCanvas(Pane parent) {
-        create();
-        parent.getChildren().add(this);
-    }
-
-    public void setMap(Map map) {
-        this.map = map;
-    }
-
-    private void create() {
+    public FieldCanvas() {
         createFieldCanvas();
         setContent(this.canvas);
 
         this.canvas.widthProperty().bind(widthProperty().subtract(2));
         this.canvas.heightProperty().bind(heightProperty().subtract(2));
+    }
+
+    public void setMap(Map map) {
+        this.map = map;
     }
 
     private void createFieldCanvas() {

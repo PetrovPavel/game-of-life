@@ -57,9 +57,10 @@ public class MainForm extends Application {
     }
 
     private void createMainCanvas(VBox leftPane) {
-        this.mainCanvas = new FieldCanvas(leftPane);
+        this.mainCanvas = new FieldCanvas();
         this.mainCanvas.setPrefSize(500, 500);
         VBox.setVgrow(this.mainCanvas, Priority.ALWAYS);
+        leftPane.getChildren().add(this.mainCanvas);
     }
 
     @Override
@@ -137,7 +138,7 @@ public class MainForm extends Application {
 
         VBox brushPane = new VBox();
 
-        FieldCanvas brushCanvas = new FieldCanvas(brushPane);
+        FieldCanvas brushCanvas = new FieldCanvas();
         brushCanvas.setPrefSize(100, 100);
         brushCanvas.setMap(new Map(new Boolean[][]{
                 {false, false, false, false, false},
@@ -146,6 +147,7 @@ public class MainForm extends Application {
                 {false, false, false, false, false},
                 {false, false, false, false, false}
         }));
+        brushPane.getChildren().add(brushCanvas);
 
         this.brushSubscription = brushCanvas.getMapChanges().subscribe(this.mainCanvas::setBrush);
 
