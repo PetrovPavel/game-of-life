@@ -40,12 +40,9 @@ public class Rules {
     private int countOfAliveNeighbours(Map map, int row, int column) {
         return IntStream.rangeClosed(row - 1, row + 1).
                 mapToLong(i -> IntStream.rangeClosed(column - 1, column + 1).
-                        filter(j -> isNeighbour(map, row, column, i, j)).
+                        filter(j -> !(i == row && j == column) && map.isSet(i, j)).
                         count()).
                 mapToInt(Math::toIntExact).sum();
     }
 
-    private boolean isNeighbour(Map map, int row, int column, int i, int j) {
-        return !(i == row && j == column) && map.isSet(i, j);
-    }
 }
