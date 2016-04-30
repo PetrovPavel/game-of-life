@@ -2,6 +2,7 @@ package com.ppetrov.game.viewer;
 
 import com.ppetrov.game.model.Game;
 import com.ppetrov.game.model.Map;
+import com.ppetrov.game.model.RuleTemplates;
 import com.ppetrov.game.model.Rules;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -14,11 +15,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import rx.Observable;
 import rx.Subscription;
 import rx.observables.JavaFxObservable;
 import rx.subscribers.JavaFxSubscriber;
+
+import java.util.Arrays;
 
 public class MainForm extends Application {
 
@@ -161,26 +165,47 @@ public class MainForm extends Application {
 
         VBox rulesPane = new VBox();
 
-        TogglePane bornPane = new TogglePane(8, 4);
+        createRulesTogglePanes(rulesPane);
+        createRulesTemplates(rulesPane);
+
+        rulesTab.setContent(rulesPane);
+        tabPane.getTabs().add(rulesTab);
+    }
+
+    private void createRulesTogglePanes(VBox rulesPane) {
+        TogglePane bornPane = new TogglePane(9, 3);
         bornPane.select(3);
 
-        TogglePane survivesPane = new TogglePane(8, 4);
+        TogglePane survivesPane = new TogglePane(9, 3);
         survivesPane.select(2, 3);
 
         rulesPane.getChildren().addAll(
                 new Label("Born:"), bornPane,
                 new Label("Survives:"), survivesPane);
 
-        rulesTab.setContent(rulesPane);
-        tabPane.getTabs().add(rulesTab);
-
-        this.rules = Observable.just(Rules.DEFAULT).mergeWith(
+        this.rules = Observable.just(RuleTemplates.DEFAULT.getRules()).mergeWith(
                 Observable.combineLatest(
                         bornPane.getSelectionChanges(),
                         survivesPane.getSelectionChanges(),
                         Rules::new
                 )
         );
+    }
+
+    private void createRulesTemplates(VBox rulesPane) {
+        VBox templatesPane = new VBox();
+
+        ToggleGroup toggleGroup = new ToggleGroup();
+        Arrays.stream(RuleTemplates.values()).forEach(template -> {
+            ToggleButton templateButton = new ToggleButton(template.getName() + "\n" + template.getRules());
+            templateButton.setSelected(template.isDefault());
+            templateButton.setToggleGroup(toggleGroup);
+            templateButton.setMaxWidth(Integer.MAX_VALUE);
+            templateButton.setTextAlignment(TextAlignment.CENTER);
+            templatesPane.getChildren().add(templateButton);
+        });
+
+        rulesPane.getChildren().addAll(new Label("Templates:"), templatesPane);
     }
 
     private String getSpeedInSecondsString(double speedInMillis) {

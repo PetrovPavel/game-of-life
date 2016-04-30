@@ -40,10 +40,10 @@ public class TogglePane extends GridPane {
     /**
      * Select toggle buttons with specified indexes
      *
-     * @param numbers 1-based indexes of toggle buttons
+     * @param indexes 0-based indexes of toggle buttons
      */
-    public void select(int... numbers) {
-        IntStream.of(numbers).forEach(number -> this.buttons[number - 1].setSelected(true));
+    public void select(int... indexes) {
+        IntStream.of(indexes).forEach(index -> this.buttons[index].setSelected(true));
     }
 
     /**
@@ -52,30 +52,30 @@ public class TogglePane extends GridPane {
     public Observable<int[]> getSelectionChanges() {
         List<Observable<Integer>> buttonIndexes =
                 IntStream.range(0, this.buttons.length).
-                        mapToObj(i -> Observable.just(i + 1).mergeWith(
-                                JavaFxObservable.fromActionEvents(this.buttons[i]).map(event -> i + 1))
+                        mapToObj(index -> Observable.just(index).mergeWith(
+                                JavaFxObservable.fromActionEvents(this.buttons[index]).map(event -> index))
                         ).collect(Collectors.toList());
 
         return Observable.combineLatest(
                 buttonIndexes,
-                numbers -> Stream.of(numbers).mapToInt(number -> (Integer) number).
-                        filter(number -> this.buttons[number - 1].isSelected()).
+                indexes -> Stream.of(indexes).mapToInt(index -> (Integer) index).
+                        filter(index -> this.buttons[index].isSelected()).
                         toArray()
         );
     }
 
     private void create() {
         IntStream.range(0, this.buttons.length).forEach(
-                i -> {
-                    int number = i + 1;
-                    this.buttons[i] = new ToggleButton(String.valueOf(number));
+                index -> {
+                    this.buttons[index] = new ToggleButton(String.valueOf(index));
+                    this.buttons[index].setMaxWidth(Integer.MAX_VALUE);
 
-                    GridPane.setConstraints(this.buttons[i], i % this.countInLine, i / this.countInLine);
-                    GridPane.setHalignment(this.buttons[i], HPos.CENTER);
-                    GridPane.setValignment(this.buttons[i], VPos.CENTER);
-                    GridPane.setHgrow(this.buttons[i], Priority.ALWAYS);
+                    GridPane.setConstraints(this.buttons[index], index % this.countInLine, index / this.countInLine);
+                    GridPane.setHalignment(this.buttons[index], HPos.CENTER);
+                    GridPane.setValignment(this.buttons[index], VPos.CENTER);
+                    GridPane.setHgrow(this.buttons[index], Priority.ALWAYS);
 
-                    getChildren().add(this.buttons[i]);
+                    getChildren().add(this.buttons[index]);
                 }
         );
     }

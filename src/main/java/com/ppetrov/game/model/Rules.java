@@ -7,8 +7,6 @@ import java.util.stream.IntStream;
 
 public class Rules {
 
-    public static Rules DEFAULT = new Rules(new int[]{3}, new int[]{2, 3});
-
     private Set<Integer> born;
     private Set<Integer> survives;
 
@@ -45,4 +43,12 @@ public class Rules {
                 mapToInt(Math::toIntExact).sum();
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("B");
+        this.born.forEach(sb::append);
+        sb.append("/S");
+        this.survives.forEach(sb::append);
+        return sb.toString();
+    }
 }

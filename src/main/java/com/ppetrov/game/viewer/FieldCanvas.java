@@ -139,7 +139,7 @@ public class FieldCanvas extends ScrollPane {
         double cellSize = getCellSize();
         double startX = (this.canvas.getWidth() - cellSize * getFieldWidth()) / 2;
         double startY = (this.canvas.getHeight() - cellSize * getFieldHeight()) / 2;
-        int borderWidth = 2;
+        int borderWidth = 1;
 
         gc.fillRect(
                 startX + column * cellSize,
