@@ -9,15 +9,12 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import rx.Observable;
 import rx.observables.JavaFxObservable;
 
-public class FieldCanvas {
+public class FieldCanvas extends ScrollPane {
 
-    private ScrollPane pane;
     private Canvas canvas;
 
     private Map map;
@@ -29,28 +26,19 @@ public class FieldCanvas {
 
     public FieldCanvas(Pane parent) {
         create();
-        parent.getChildren().add(this.pane);
+        parent.getChildren().add(this);
     }
 
     public void setMap(Map map) {
         this.map = map;
     }
 
-    public void setPrefSize(double width, double height) {
-        this.pane.setPrefSize(width, height);
-    }
-
-    public void setVGrow(Priority priority) {
-        VBox.setVgrow(this.pane, priority);
-    }
-
     private void create() {
         createFieldCanvas();
-        this.pane = new ScrollPane();
-        this.pane.setContent(this.canvas);
+        setContent(this.canvas);
 
-        this.canvas.widthProperty().bind(this.pane.widthProperty().subtract(2));
-        this.canvas.heightProperty().bind(this.pane.heightProperty().subtract(2));
+        this.canvas.widthProperty().bind(widthProperty().subtract(2));
+        this.canvas.heightProperty().bind(heightProperty().subtract(2));
     }
 
     private void createFieldCanvas() {

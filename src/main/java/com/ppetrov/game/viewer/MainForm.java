@@ -59,7 +59,7 @@ public class MainForm extends Application {
     private void createMainCanvas(VBox leftPane) {
         this.mainCanvas = new FieldCanvas(leftPane);
         this.mainCanvas.setPrefSize(500, 500);
-        this.mainCanvas.setVGrow(Priority.ALWAYS);
+        VBox.setVgrow(this.mainCanvas, Priority.ALWAYS);
     }
 
     @Override
