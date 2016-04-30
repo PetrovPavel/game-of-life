@@ -23,19 +23,14 @@ import rx.subscribers.JavaFxSubscriber;
 public class MainForm extends Application {
 
     private FieldCanvas mainCanvas;
-    private FieldCanvas brushCanvas;
 
-    private Game game;
     private Subscription gameSubscription;
+    private Subscription brushSubscription;
 
     private Observable<Rules> rules;
     private Observable<Integer> speed;
     private Observable<Boolean> pause;
     private Observable<Boolean> next;
-
-    public MainForm() {
-        this.game = new Game();
-    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -49,8 +44,6 @@ public class MainForm extends Application {
         createGameFlowPane(leftPane);
         createSettingsPane(root);
 
-        startGame();
-
         HBox.setHgrow(leftPane, Priority.ALWAYS);
 
         Scene scene = new Scene(root);
@@ -59,9 +52,11 @@ public class MainForm extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
         root.requestFocus();
+
+        startGame();
     }
 
-    public void createMainCanvas(VBox leftPane) {
+    private void createMainCanvas(VBox leftPane) {
         this.mainCanvas = new FieldCanvas(leftPane);
         this.mainCanvas.setPrefSize(500, 500);
         this.mainCanvas.setVGrow(Priority.ALWAYS);
@@ -84,10 +79,11 @@ public class MainForm extends Application {
 
         this.pause = Observable.just(true).mergeWith(
                 JavaFxObservable.fromActionEvents(pauseButton).
-                        map(event -> false).mergeWith(
-                        JavaFxObservable.fromActionEvents(resumeButton).
-                                map(event -> true)
-                ));
+                        map(event -> false).
+                        mergeWith(
+                                JavaFxObservable.fromActionEvents(resumeButton).map(event -> true)
+                        )
+        );
 
         Label speedLabel = new Label();
         Slider speedSlider = new Slider(-1000, -100, -500);
@@ -95,17 +91,17 @@ public class MainForm extends Application {
         speedSlider.setMajorTickUnit(100);
         speedSlider.setBlockIncrement(100);
         speedSlider.setTooltip(new Tooltip("Speed"));
+
         this.speed = JavaFxObservable.fromObservableValue(speedSlider.valueProperty()).
                 map(change -> Math.abs(change.intValue()));
-        speedLabel.textProperty().bind(JavaFxSubscriber.toBinding(
-                speed.map(this::getSpeedInSecondsString)
-        ));
+        speedLabel.textProperty().bind(
+                JavaFxSubscriber.toBinding(speed.map(this::getSpeedInSecondsString))
+        );
 
         Button nextStepButton = new Button();
         nextStepButton.setTooltip(new Tooltip("Next Step"));
         nextStepButton.setGraphic(new ImageView("/icons/step.png"));
-        this.next =
-                JavaFxObservable.fromActionEvents(nextStepButton).map(event -> true);
+        this.next = JavaFxObservable.fromActionEvents(nextStepButton).map(event -> true);
 
         Button restartButton = new Button();
         restartButton.setTooltip(new Tooltip("Restart Game"));
@@ -141,9 +137,9 @@ public class MainForm extends Application {
 
         VBox brushPane = new VBox();
 
-        this.brushCanvas = new FieldCanvas(brushPane);
-        this.brushCanvas.setPrefSize(100, 100);
-        this.brushCanvas.setMap(new Map(new Boolean[][]{
+        FieldCanvas brushCanvas = new FieldCanvas(brushPane);
+        brushCanvas.setPrefSize(100, 100);
+        brushCanvas.setMap(new Map(new Boolean[][]{
                 {false, false, false, false, false},
                 {false, false, false, false, false},
                 {false, false, true, false, false},
@@ -151,7 +147,7 @@ public class MainForm extends Application {
                 {false, false, false, false, false}
         }));
 
-        this.brushCanvas.getMapChanges().subscribe(this.mainCanvas::setBrush);
+        this.brushSubscription = brushCanvas.getMapChanges().subscribe(this.mainCanvas::setBrush);
 
         brushTab.setContent(brushPane);
         tabPane.getTabs().add(brushTab);
@@ -171,20 +167,18 @@ public class MainForm extends Application {
 
         rulesPane.getChildren().addAll(
                 new Label("Born:"), bornPane,
-                new Label("Survives:"), survivesPane
-        );
+                new Label("Survives:"), survivesPane);
 
         rulesTab.setContent(rulesPane);
         tabPane.getTabs().add(rulesTab);
 
-        this.rules = Observable.just(Rules.DEFAULT).
-                mergeWith(
-                        Observable.combineLatest(
-                                bornPane.getSelectionChanges(),
-                                survivesPane.getSelectionChanges(),
-                                Rules::new
-                        )
-                );
+        this.rules = Observable.just(Rules.DEFAULT).mergeWith(
+                Observable.combineLatest(
+                        bornPane.getSelectionChanges(),
+                        survivesPane.getSelectionChanges(),
+                        Rules::new
+                )
+        );
     }
 
     private String getSpeedInSecondsString(double speedInMillis) {
@@ -197,7 +191,7 @@ public class MainForm extends Application {
     }
 
     private void startGame() {
-        this.gameSubscription = this.game.startGame(this.rules, this.speed, this.pause, this.next).
+        this.gameSubscription = new Game().startGame(this.rules, this.speed, this.pause, this.next).
                 subscribe(map -> {
                     this.mainCanvas.setMap(map);
                     Platform.runLater(this.mainCanvas::redraw);
@@ -205,8 +199,13 @@ public class MainForm extends Application {
     }
 
     private void stopGame() {
-        if (this.gameSubscription != null && !this.gameSubscription.isUnsubscribed()) {
-            this.gameSubscription.unsubscribe();
+        unsubscribe(this.brushSubscription);
+        unsubscribe(this.gameSubscription);
+    }
+
+    private void unsubscribe(Subscription subscription) {
+        if (subscription != null && !subscription.isUnsubscribed()) {
+            subscription.unsubscribe();
         }
     }
 
