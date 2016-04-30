@@ -12,6 +12,8 @@ import javafx.scene.paint.Color;
 import rx.Observable;
 import rx.observables.JavaFxObservable;
 
+import java.util.stream.IntStream;
+
 public class FieldCanvas extends ScrollPane {
 
     private Canvas canvas;
@@ -73,17 +75,15 @@ public class FieldCanvas extends ScrollPane {
                 int brushHeight = this.brush.getHeight();
                 int brushWidth = this.brush.getWidth();
 
-                for (int row = 0; row < brushHeight; row++) {
-                    for (int column = 0; column < brushWidth; column++) {
-                        if (this.brush.getCell(row, column)) {
-                            this.map.setCell(
-                                    this.rowUnderCursor + row - brushHeight / 2,
-                                    this.columnUnderCursor + column - brushWidth / 2,
-                                    isPrimary
-                            );
-                        }
-                    }
-                }
+                IntStream.range(0, brushHeight).forEach(row ->
+                        IntStream.range(0, brushHeight).filter(column -> this.brush.isSet(row, column)).
+                                forEach(column -> this.map.setCell(
+                                        this.rowUnderCursor + row - brushHeight / 2,
+                                        this.columnUnderCursor + column - brushWidth / 2,
+                                        isPrimary
+                                        )
+                                )
+                );
                 redraw();
             }
         } else {
@@ -123,21 +123,20 @@ public class FieldCanvas extends ScrollPane {
             int brushHeight = this.brush.getHeight();
             int brushWidth = this.brush.getWidth();
 
-            for (int row = 0; row < brushHeight; row++) {
-                for (int column = 0; column < brushWidth; column++) {
-                    if (this.brush.getCell(row, column)) {
-                        drawCell(gc,
-                                this.map.fixRow(this.rowUnderCursor + row - brushHeight / 2),
-                                this.map.fixColumn(this.columnUnderCursor + column - brushWidth / 2));
-                    }
-                }
-            }
+
+            IntStream.range(0, brushHeight).forEach(row ->
+                    IntStream.range(0, brushHeight).filter(column -> this.brush.isSet(row, column)).
+                            forEach(column -> drawCell(gc,
+                                    this.map.fixRow(this.rowUnderCursor + row - brushHeight / 2),
+                                    this.map.fixColumn(this.columnUnderCursor + column - brushWidth / 2))
+                            )
+            );
         }
     }
 
     private void drawCalculatedCell(int row, int column) {
         GraphicsContext gc = this.canvas.getGraphicsContext2D();
-        boolean isAlive = this.map.getCell(row, column);
+        boolean isAlive = this.map.isSet(row, column);
         gc.setFill(isAlive ? Color.DARKGREEN : Color.SANDYBROWN);
         drawCell(gc, row, column);
     }

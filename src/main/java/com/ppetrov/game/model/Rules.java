@@ -25,7 +25,7 @@ public class Rules {
                         column -> {
                             int aliveNeighbours = countOfAliveNeighbours(map, row, column);
                             if (this.born.contains(aliveNeighbours) &&
-                                    !map.getCell(row, column)) {
+                                    !map.isSet(row, column)) {
                                 nextStateField[row][column] = true;
                             } else if (!this.survives.contains(aliveNeighbours)) {
                                 nextStateField[row][column] = false;
@@ -46,6 +46,6 @@ public class Rules {
     }
 
     private boolean isNeighbour(Map map, int row, int column, int i, int j) {
-        return !(i == row && j == column) && map.getCell(i, j);
+        return !(i == row && j == column) && map.isSet(i, j);
     }
 }

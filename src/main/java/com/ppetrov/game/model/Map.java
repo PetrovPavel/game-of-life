@@ -27,7 +27,7 @@ public class Map {
         return this.field.length;
     }
 
-    public boolean getCell(int row, int column) {
+    public boolean isSet(int row, int column) {
         return this.field[fixRow(row)][fixColumn(column)];
     }
 
