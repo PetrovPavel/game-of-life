@@ -4,7 +4,8 @@ public enum RuleTemplate {
 
     DEFAULT("Default", new Rules(new int[]{3}, new int[]{2, 3})),
     SEEDS("Seeds", new Rules(new int[]{2}, new int[]{})),
-    LIFE_34("34 Life", new Rules(new int[]{3, 4}, new int[]{3, 4}));
+    LIFE_34("34 Life", new Rules(new int[]{3, 4}, new int[]{3, 4})),
+    DIAMOEBA("Diamoeba", new Rules(new int[]{3, 5, 6, 7, 8}, new int[]{5, 6, 7, 8}));
 
     private String name;
     private Rules rules;

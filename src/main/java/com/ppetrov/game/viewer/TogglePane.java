@@ -5,6 +5,7 @@ import javafx.geometry.VPos;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import org.apache.commons.lang3.ArrayUtils;
 import rx.Observable;
 import rx.observables.JavaFxObservable;
 
@@ -43,8 +44,20 @@ public class TogglePane extends GridPane {
      * @param indexes 0-based indexes of toggle buttons
      */
     public void select(int... indexes) {
-        Stream.of(this.buttons).forEach(button -> button.setSelected(false));
-        IntStream.of(indexes).forEach(index -> this.buttons[index].setSelected(true));
+        if (!isSelected(indexes)) {
+            Stream.of(this.buttons).forEach(button -> button.setSelected(false));
+            IntStream.of(indexes).forEach(index -> this.buttons[index].setSelected(true));
+        }
+    }
+
+    private boolean isSelected(int... selectedIndexes) {
+        return IntStream.of(selectedIndexes).
+                mapToObj(index -> this.buttons[index]).
+                allMatch(ToggleButton::isSelected) &&
+                IntStream.range(0, this.buttons.length).
+                        filter(index -> !ArrayUtils.contains(selectedIndexes, index)).
+                        mapToObj(index -> this.buttons[index]).
+                        noneMatch(ToggleButton::isSelected);
     }
 
     /**
@@ -54,7 +67,8 @@ public class TogglePane extends GridPane {
         List<Observable<Integer>> buttonIndexes =
                 IntStream.range(0, this.buttons.length).
                         mapToObj(index -> Observable.just(index).mergeWith(
-                                JavaFxObservable.fromActionEvents(this.buttons[index]).map(event -> index))).
+                                JavaFxObservable.fromObservableValue(this.buttons[index].selectedProperty()).
+                                        map(selected -> index))).
                         collect(Collectors.toList());
 
         return Observable.combineLatest(
