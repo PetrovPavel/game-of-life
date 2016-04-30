@@ -8,10 +8,10 @@ import javafx.scene.layout.Priority;
 import rx.Observable;
 import rx.observables.JavaFxObservable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * TogglePane is a GridPane with ToggleButtons.
@@ -43,52 +43,41 @@ public class TogglePane extends GridPane {
      * @param numbers 1-based indexes of toggle buttons
      */
     public void select(int... numbers) {
-        for (int number : numbers) {
-            this.buttons[number - 1].setSelected(true);
-        }
+        IntStream.of(numbers).forEach(number -> this.buttons[number - 1].setSelected(true));
     }
 
     /**
      * @return Observable that emits Set of currently selected buttons
      */
-    public Observable<Set<Integer>> getSelectionChanges() {
-        List<Observable<Integer>> buttonSelections = new ArrayList<>();
-        for (int i = 0; i < this.buttons.length; i++) {
-            final int number = i + 1;
-            buttonSelections.add(
-                    Observable.just(number).mergeWith(
-                            JavaFxObservable.fromActionEvents(this.buttons[i]).
-                                    map(event -> number)
-                    )
-            );
-        }
+    public Observable<int[]> getSelectionChanges() {
+        List<Observable<Integer>> buttonIndexes =
+                IntStream.range(0, this.buttons.length).
+                        mapToObj(i -> Observable.just(i + 1).mergeWith(
+                                JavaFxObservable.fromActionEvents(this.buttons[i]).map(event -> i + 1))
+                        ).collect(Collectors.toList());
+
         return Observable.combineLatest(
-                buttonSelections,
-                numbers -> {
-                    HashSet<Integer> selectedNumbers = new HashSet<>();
-                    for (Object number : numbers) {
-                        Integer castedNumber = (Integer) number;
-                        if (this.buttons[castedNumber - 1].isSelected()) {
-                            selectedNumbers.add(castedNumber);
-                        }
-                    }
-                    return selectedNumbers;
-                }
+                buttonIndexes,
+                numbers -> Stream.of(numbers).mapToInt(number -> (Integer) number).
+                        filter(number -> this.buttons[number - 1].isSelected()).
+                        toArray()
         );
     }
 
     private void create() {
-        for (int i = 0; i < this.buttons.length; i++) {
-            int number = i + 1;
-            this.buttons[i] = new ToggleButton(String.valueOf(number));
+        IntStream.range(0, this.buttons.length).forEach(
+                i -> {
+                    int number = i + 1;
+                    this.buttons[i] = new ToggleButton(String.valueOf(number));
 
-            GridPane.setConstraints(this.buttons[i], i % this.countInLine, i / this.countInLine);
-            GridPane.setHalignment(this.buttons[i], HPos.CENTER);
-            GridPane.setValignment(this.buttons[i], VPos.CENTER);
-            GridPane.setHgrow(this.buttons[i], Priority.ALWAYS);
+                    GridPane.setConstraints(this.buttons[i], i % this.countInLine, i / this.countInLine);
+                    GridPane.setHalignment(this.buttons[i], HPos.CENTER);
+                    GridPane.setValignment(this.buttons[i], VPos.CENTER);
+                    GridPane.setHgrow(this.buttons[i], Priority.ALWAYS);
 
-            getChildren().add(this.buttons[i]);
-        }
+                    getChildren().add(this.buttons[i]);
+                }
+        );
     }
 
 }

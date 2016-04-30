@@ -17,11 +17,6 @@ public class Rules {
         this.survives = Arrays.stream(survives).boxed().collect(Collectors.toSet());
     }
 
-    public Rules(Set<Integer> born, Set<Integer> survives) {
-        this.born = born;
-        this.survives = survives;
-    }
-
     public Map nextState(Map map) {
         Boolean[][] nextStateField = map.getField();
 
