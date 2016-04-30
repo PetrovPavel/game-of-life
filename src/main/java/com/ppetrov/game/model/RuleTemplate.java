@@ -1,6 +1,6 @@
 package com.ppetrov.game.model;
 
-public enum RuleTemplates {
+public enum RuleTemplate {
 
     DEFAULT("Default", new Rules(new int[]{3}, new int[]{2, 3})),
     SEEDS("Seeds", new Rules(new int[]{2}, new int[]{})),
@@ -9,7 +9,7 @@ public enum RuleTemplates {
     private String name;
     private Rules rules;
 
-    RuleTemplates(String name, Rules rules) {
+    RuleTemplate(String name, Rules rules) {
         this.name = name;
         this.rules = rules;
     }

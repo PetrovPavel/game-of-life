@@ -1,5 +1,7 @@
 package com.ppetrov.game.model;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -7,8 +9,8 @@ import java.util.stream.IntStream;
 
 public class Rules {
 
-    private Set<Integer> born;
-    private Set<Integer> survives;
+    private final Set<Integer> born;
+    private final Set<Integer> survives;
 
     public Rules(int[] born, int[] survives) {
         this.born = Arrays.stream(born).boxed().collect(Collectors.toSet());
@@ -35,6 +37,14 @@ public class Rules {
         return new Map(nextStateField);
     }
 
+    public int[] getBorn() {
+        return ArrayUtils.toPrimitive(this.born.toArray(new Integer[this.born.size()]));
+    }
+
+    public int[] getSurvives() {
+        return ArrayUtils.toPrimitive(this.survives.toArray(new Integer[this.survives.size()]));
+    }
+
     private int countOfAliveNeighbours(Map map, int row, int column) {
         return IntStream.rangeClosed(row - 1, row + 1).
                 mapToLong(i -> IntStream.rangeClosed(column - 1, column + 1).
@@ -51,4 +61,17 @@ public class Rules {
         this.survives.forEach(sb::append);
         return sb.toString();
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Rules)) {
+            return false;
+        } else if (obj == this) {
+            return true;
+        } else {
+            Rules that = (Rules) obj;
+            return this.born.equals(that.born) && this.survives.equals(that.survives);
+        }
+    }
+
 }

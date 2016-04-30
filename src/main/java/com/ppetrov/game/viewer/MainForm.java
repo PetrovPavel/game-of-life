@@ -2,7 +2,7 @@ package com.ppetrov.game.viewer;
 
 import com.ppetrov.game.model.Game;
 import com.ppetrov.game.model.Map;
-import com.ppetrov.game.model.RuleTemplates;
+import com.ppetrov.game.model.RuleTemplate;
 import com.ppetrov.game.model.Rules;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -15,21 +15,23 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import rx.Observable;
 import rx.Subscription;
 import rx.observables.JavaFxObservable;
 import rx.subscribers.JavaFxSubscriber;
 
-import java.util.Arrays;
-
 public class MainForm extends Application {
 
     private FieldCanvas mainCanvas;
+    private TogglePane bornPane;
+    private TogglePane survivesPane;
+    private RuleTemplatesPane templatesPane;
 
     private Subscription gameSubscription;
     private Subscription brushSubscription;
+    private Subscription ruleTemplateSubscription;
+    private Subscription ruleSubscription;
 
     private Observable<Rules> rules;
     private Observable<Integer> speed;
@@ -168,44 +170,41 @@ public class MainForm extends Application {
         createRulesTogglePanes(rulesPane);
         createRulesTemplates(rulesPane);
 
+        this.ruleTemplateSubscription = this.templatesPane.getChanges().subscribe(template -> {
+            Rules rules = template.getRules();
+            this.bornPane.select(rules.getBorn());
+            this.survivesPane.select(rules.getSurvives());
+        });
+
+        this.ruleSubscription = this.rules.subscribe(this.templatesPane::selectIfExists);
+
         rulesTab.setContent(rulesPane);
         tabPane.getTabs().add(rulesTab);
     }
 
     private void createRulesTogglePanes(VBox rulesPane) {
-        TogglePane bornPane = new TogglePane(9, 3);
-        bornPane.select(3);
+        this.bornPane = new TogglePane(9, 3);
+        this.bornPane.select(3);
 
-        TogglePane survivesPane = new TogglePane(9, 3);
-        survivesPane.select(2, 3);
+        this.survivesPane = new TogglePane(9, 3);
+        this.survivesPane.select(2, 3);
 
         rulesPane.getChildren().addAll(
-                new Label("Born:"), bornPane,
-                new Label("Survives:"), survivesPane);
+                new Label("Born:"), this.bornPane,
+                new Label("Survives:"), this.survivesPane);
 
-        this.rules = Observable.just(RuleTemplates.DEFAULT.getRules()).mergeWith(
+        this.rules = Observable.just(RuleTemplate.DEFAULT.getRules()).mergeWith(
                 Observable.combineLatest(
-                        bornPane.getSelectionChanges(),
-                        survivesPane.getSelectionChanges(),
+                        this.bornPane.getSelectionChanges(),
+                        this.survivesPane.getSelectionChanges(),
                         Rules::new
                 )
         );
     }
 
     private void createRulesTemplates(VBox rulesPane) {
-        VBox templatesPane = new VBox();
-
-        ToggleGroup toggleGroup = new ToggleGroup();
-        Arrays.stream(RuleTemplates.values()).forEach(template -> {
-            ToggleButton templateButton = new ToggleButton(template.getName() + "\n" + template.getRules());
-            templateButton.setSelected(template.isDefault());
-            templateButton.setToggleGroup(toggleGroup);
-            templateButton.setMaxWidth(Integer.MAX_VALUE);
-            templateButton.setTextAlignment(TextAlignment.CENTER);
-            templatesPane.getChildren().add(templateButton);
-        });
-
-        rulesPane.getChildren().addAll(new Label("Templates:"), templatesPane);
+        this.templatesPane = new RuleTemplatesPane();
+        rulesPane.getChildren().addAll(new Label("Templates:"), this.templatesPane);
     }
 
     private String getSpeedInSecondsString(double speedInMillis) {
@@ -226,6 +225,8 @@ public class MainForm extends Application {
     }
 
     private void stopGame() {
+        unsubscribe(this.ruleSubscription);
+        unsubscribe(this.ruleTemplateSubscription);
         unsubscribe(this.brushSubscription);
         unsubscribe(this.gameSubscription);
     }

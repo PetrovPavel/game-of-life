@@ -43,6 +43,7 @@ public class TogglePane extends GridPane {
      * @param indexes 0-based indexes of toggle buttons
      */
     public void select(int... indexes) {
+        Stream.of(this.buttons).forEach(button -> button.setSelected(false));
         IntStream.of(indexes).forEach(index -> this.buttons[index].setSelected(true));
     }
 
@@ -53,8 +54,8 @@ public class TogglePane extends GridPane {
         List<Observable<Integer>> buttonIndexes =
                 IntStream.range(0, this.buttons.length).
                         mapToObj(index -> Observable.just(index).mergeWith(
-                                JavaFxObservable.fromActionEvents(this.buttons[index]).map(event -> index))
-                        ).collect(Collectors.toList());
+                                JavaFxObservable.fromActionEvents(this.buttons[index]).map(event -> index))).
+                        collect(Collectors.toList());
 
         return Observable.combineLatest(
                 buttonIndexes,
