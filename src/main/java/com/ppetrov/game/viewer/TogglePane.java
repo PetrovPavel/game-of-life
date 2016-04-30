@@ -13,13 +13,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * TogglePane is a GridPane with ToggleButtons.
+ * ToggleButtons are not in the same ToggleGroup,
+ * so any amount of them can be selected at the same time.
+ * All buttons are center-aligned both horizontally and vertically,
+ * and always grow horizontally.
+ */
 public class TogglePane extends GridPane {
 
     private final ToggleButton[] buttons;
     private final int countInLine;
 
     /**
-     * Creates a TogglePane containing ToggleButtons
+     * Create a TogglePane containing ToggleButtons
      *
      * @param count       amount of ToggleButtons
      * @param countInLine amount of ToggleButtons in one line
@@ -30,6 +37,11 @@ public class TogglePane extends GridPane {
         create();
     }
 
+    /**
+     * Select toggle buttons with specified indexes
+     *
+     * @param numbers 1-based indexes of toggle buttons
+     */
     public void select(int... numbers) {
         for (int number : numbers) {
             this.buttons[number - 1].setSelected(true);
