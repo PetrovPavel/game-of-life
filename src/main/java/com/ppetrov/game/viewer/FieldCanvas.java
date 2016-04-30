@@ -119,7 +119,6 @@ public class FieldCanvas extends ScrollPane {
             int brushHeight = this.brush.getHeight();
             int brushWidth = this.brush.getWidth();
 
-
             IntStream.range(0, brushHeight).forEach(row ->
                     IntStream.range(0, brushHeight).filter(column -> this.brush.isSet(row, column)).
                             forEach(column -> drawCell(gc,
@@ -140,7 +139,7 @@ public class FieldCanvas extends ScrollPane {
         double cellSize = getCellSize();
         double startX = (this.canvas.getWidth() - cellSize * getFieldWidth()) / 2;
         double startY = (this.canvas.getHeight() - cellSize * getFieldHeight()) / 2;
-        int borderWidth = 1;
+        int borderWidth = 2;
 
         gc.fillRect(
                 startX + column * cellSize,
