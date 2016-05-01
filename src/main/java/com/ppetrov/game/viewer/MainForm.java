@@ -1,7 +1,6 @@
 package com.ppetrov.game.viewer;
 
 import com.ppetrov.game.model.Game;
-import com.ppetrov.game.model.Map;
 import com.ppetrov.game.model.Rules;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -140,20 +139,8 @@ public class MainForm extends Application {
         Tab brushTab = new Tab("Brush");
         brushTab.setClosable(false);
 
-        VBox brushPane = new VBox();
-
-        FieldCanvas brushCanvas = new FieldCanvas();
-        brushCanvas.setPrefSize(100, 100);
-        brushCanvas.setMap(new Map(new Boolean[][]{
-                {false, false, false, false, false},
-                {false, false, false, false, false},
-                {false, false, true, false, false},
-                {false, false, false, false, false},
-                {false, false, false, false, false}
-        }));
-        brushPane.getChildren().add(brushCanvas);
-
-        this.brushSubscription = brushCanvas.getMapChanges().subscribe(this.mainCanvas::setBrush);
+        BrushPane brushPane = new BrushPane();
+        this.brushSubscription = brushPane.getMapChanges().subscribe(this.mainCanvas::setBrush);
 
         brushTab.setContent(brushPane);
         tabPane.getTabs().add(brushTab);
