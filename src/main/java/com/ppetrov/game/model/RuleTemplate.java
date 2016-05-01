@@ -8,7 +8,9 @@ public enum RuleTemplate {
     DIAMOEBA("Diamoeba", new Rules(new int[]{3, 5, 6, 7, 8}, new int[]{5, 6, 7, 8})),
     TWO_X_TWO("2x2", new Rules(new int[]{3, 6}, new int[]{1, 2, 5})),
     HIGH_LIFE("High Life", new Rules(new int[]{3, 6}, new int[]{2, 3})),
-    DAY_AND_NIGHT("Day & Night", new Rules(new int[]{3, 6, 7, 8}, new int[]{3, 4, 6, 7, 8}));
+    DAY_AND_NIGHT("Day & Night", new Rules(new int[]{3, 6, 7, 8}, new int[]{3, 4, 6, 7, 8})),
+    MORLEY("Morley", new Rules(new int[]{3, 6, 8}, new int[]{2, 4, 5})),
+    ANNEAL("Anneal", new Rules(new int[]{4, 6, 7, 8}, new int[]{3, 5, 6, 7, 8}));
 
     private String name;
     private Rules rules;

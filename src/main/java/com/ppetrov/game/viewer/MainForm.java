@@ -51,15 +51,18 @@ public class MainForm extends Application {
         scene.getStylesheets().add("styles/main.css");
 
         primaryStage.setScene(scene);
-        primaryStage.show();
+        primaryStage.setMinWidth(750);
+        primaryStage.setMinHeight(700);
+
         root.requestFocus();
 
         startGame();
+
+        primaryStage.show();
     }
 
     private void createMainCanvas(VBox leftPane) {
         this.mainCanvas = new FieldCanvas();
-        this.mainCanvas.setPrefSize(500, 500);
         VBox.setVgrow(this.mainCanvas, Priority.ALWAYS);
         leftPane.getChildren().add(this.mainCanvas);
     }
