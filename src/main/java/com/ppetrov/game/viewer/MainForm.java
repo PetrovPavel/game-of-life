@@ -2,7 +2,6 @@ package com.ppetrov.game.viewer;
 
 import com.ppetrov.game.model.Game;
 import com.ppetrov.game.model.Map;
-import com.ppetrov.game.model.RuleTemplate;
 import com.ppetrov.game.model.Rules;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -24,14 +23,10 @@ import rx.subscribers.JavaFxSubscriber;
 public class MainForm extends Application {
 
     private FieldCanvas mainCanvas;
-    private TogglePane bornPane;
-    private TogglePane survivesPane;
-    private RulesPane templatesPane;
+    private RulesPane rulesPane;
 
     private Subscription gameSubscription;
     private Subscription brushSubscription;
-    private Subscription ruleTemplateSubscription;
-    private Subscription ruleSubscription;
 
     private Observable<Rules> rules;
     private Observable<Integer> speed;
@@ -165,46 +160,15 @@ public class MainForm extends Application {
         Tab rulesTab = new Tab("Rules");
         rulesTab.setClosable(false);
 
-        VBox rulesPane = new VBox();
+        createRulesPane();
 
-        createRulesTogglePanes(rulesPane);
-        createRulesTemplates(rulesPane);
-
-        this.ruleTemplateSubscription = this.templatesPane.getChanges().subscribe(template -> {
-            Rules rules = template.getRules();
-            this.bornPane.select(rules.getBorn());
-            this.survivesPane.select(rules.getSurvives());
-        });
-
-        this.ruleSubscription = this.rules.subscribe(this.templatesPane::selectIfExists);
-
-        rulesTab.setContent(rulesPane);
+        rulesTab.setContent(this.rulesPane);
         tabPane.getTabs().add(rulesTab);
     }
 
-    private void createRulesTogglePanes(VBox rulesPane) {
-        this.bornPane = new TogglePane(9, 3);
-        this.bornPane.select(3);
-
-        this.survivesPane = new TogglePane(9, 3);
-        this.survivesPane.select(2, 3);
-
-        rulesPane.getChildren().addAll(
-                new Label("Born:"), this.bornPane,
-                new Label("Survives:"), this.survivesPane);
-
-        this.rules = Observable.just(RuleTemplate.DEFAULT.getRules()).mergeWith(
-                Observable.combineLatest(
-                        this.bornPane.getSelectionChanges(),
-                        this.survivesPane.getSelectionChanges(),
-                        Rules::new
-                )
-        );
-    }
-
-    private void createRulesTemplates(VBox rulesPane) {
-        this.templatesPane = new RulesPane();
-        rulesPane.getChildren().addAll(new Label("Templates:"), this.templatesPane);
+    private void createRulesPane() {
+        this.rulesPane = new RulesPane();
+        this.rules = this.rulesPane.getRulesChanges();
     }
 
     private String getSpeedInSecondsString(double speedInMillis) {
@@ -225,8 +189,6 @@ public class MainForm extends Application {
     }
 
     private void stopGame() {
-        unsubscribe(this.ruleSubscription);
-        unsubscribe(this.ruleTemplateSubscription);
         unsubscribe(this.brushSubscription);
         unsubscribe(this.gameSubscription);
     }
