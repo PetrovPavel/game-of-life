@@ -12,26 +12,29 @@ import rx.observables.JavaFxObservable;
 
 import java.util.stream.IntStream;
 
-public class RuleTemplatesPane extends VBox {
+public class RulesPane extends VBox {
 
     private final ToggleGroup toggleGroup;
     private final ToggleButton[] templateButtons;
 
-    public RuleTemplatesPane() {
+    public RulesPane() {
         RuleTemplate[] ruleTemplates = RuleTemplate.values();
         this.templateButtons = new ToggleButton[ruleTemplates.length];
 
         this.toggleGroup = new ToggleGroup();
-        IntStream.range(0, this.templateButtons.length).forEach(index -> {
-            RuleTemplate template = ruleTemplates[index];
-            ToggleButton templateButton = new ToggleButton(template.getName() + "\n" + template.getRules());
-            templateButton.setSelected(template.isDefault());
-            templateButton.setToggleGroup(toggleGroup);
-            templateButton.setMaxWidth(Integer.MAX_VALUE);
-            templateButton.setTextAlignment(TextAlignment.CENTER);
-            templateButton.setUserData(template);
-            getChildren().add(templateButton);
-        });
+        IntStream.range(0, this.templateButtons.length).
+                mapToObj(index -> ruleTemplates[index]).
+                forEach(this::createTemplateButton);
+    }
+
+    private void createTemplateButton(RuleTemplate template) {
+        ToggleButton templateButton = new ToggleButton(template.getName() + "\n" + template.getRules());
+        templateButton.setSelected(template.isDefault());
+        templateButton.setToggleGroup(toggleGroup);
+        templateButton.setMaxWidth(Integer.MAX_VALUE);
+        templateButton.setTextAlignment(TextAlignment.CENTER);
+        templateButton.setUserData(template);
+        getChildren().add(templateButton);
     }
 
     public Observable<RuleTemplate> getChanges() {

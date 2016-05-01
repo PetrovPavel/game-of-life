@@ -26,7 +26,7 @@ public class MainForm extends Application {
     private FieldCanvas mainCanvas;
     private TogglePane bornPane;
     private TogglePane survivesPane;
-    private RuleTemplatesPane templatesPane;
+    private RulesPane templatesPane;
 
     private Subscription gameSubscription;
     private Subscription brushSubscription;
@@ -203,7 +203,7 @@ public class MainForm extends Application {
     }
 
     private void createRulesTemplates(VBox rulesPane) {
-        this.templatesPane = new RuleTemplatesPane();
+        this.templatesPane = new RulesPane();
         rulesPane.getChildren().addAll(new Label("Templates:"), this.templatesPane);
     }
 
