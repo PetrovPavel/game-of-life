@@ -28,8 +28,7 @@ public class RulesPane extends VBox {
         subscribeOnTemplatesChanges();
         subscribeOnRulesChanges();
 
-        getChildren().addAll(this.bornSurvivesVBox,
-                new Label("Templates:"), this.templatesPane);
+        getChildren().addAll(this.bornSurvivesVBox, this.templatesPane);
     }
 
     private void createBornSurvivesPane() {
@@ -50,7 +49,7 @@ public class RulesPane extends VBox {
         this.templatesPane = new ScrollPane();
         this.templatesPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
-        this.templatesVBox = new VBox();
+        this.templatesVBox = new VBox(new Label("Templates:"));
         this.templatesPane.setFitToWidth(true);
         this.templatesGroup = new ToggleGroup();
 
