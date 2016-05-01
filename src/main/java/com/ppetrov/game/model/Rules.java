@@ -1,8 +1,10 @@
 package com.ppetrov.game.model;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -13,8 +15,8 @@ public class Rules {
     private final Set<Integer> survives;
 
     public Rules(int[] born, int[] survives) {
-        this.born = Arrays.stream(born).boxed().collect(Collectors.toSet());
-        this.survives = Arrays.stream(survives).boxed().collect(Collectors.toSet());
+        this.born = Collections.unmodifiableSet(Arrays.stream(born).boxed().collect(Collectors.toSet()));
+        this.survives = Collections.unmodifiableSet(Arrays.stream(survives).boxed().collect(Collectors.toSet()));
     }
 
     public Map nextState(Map map) {
@@ -74,4 +76,8 @@ public class Rules {
         }
     }
 
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(this.born).append(this.survives).toHashCode();
+    }
 }
