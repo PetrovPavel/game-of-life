@@ -2,10 +2,7 @@ package com.ppetrov.game.viewer;
 
 import com.ppetrov.game.model.RuleTemplate;
 import com.ppetrov.game.model.Rules;
-import javafx.scene.control.Label;
-import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import rx.Observable;
@@ -15,11 +12,12 @@ import java.util.stream.IntStream;
 
 public class RulesPane extends VBox {
 
-    private VBox bornSurvivesPane;
+    private VBox bornSurvivesVBox;
     private TogglePane bornPane;
     private TogglePane survivesPane;
 
-    private VBox templatesPane;
+    private ScrollPane templatesPane;
+    private VBox templatesVBox;
     private ToggleGroup templatesGroup;
     private ToggleButton[] templateButtons;
 
@@ -30,11 +28,11 @@ public class RulesPane extends VBox {
         subscribeOnTemplatesChanges();
         subscribeOnRulesChanges();
 
-        getChildren().addAll(this.bornSurvivesPane, this.templatesPane);
+        getChildren().addAll(this.bornSurvivesVBox, this.templatesPane);
     }
 
     private void createBornSurvivesPane() {
-        this.bornSurvivesPane = new VBox();
+        this.bornSurvivesVBox = new VBox();
 
         this.bornPane = new TogglePane(9, 3);
         this.bornPane.select(3);
@@ -42,13 +40,17 @@ public class RulesPane extends VBox {
         this.survivesPane = new TogglePane(9, 3);
         this.survivesPane.select(2, 3);
 
-        this.bornSurvivesPane.getChildren().addAll(
+        this.bornSurvivesVBox.getChildren().addAll(
                 new Label("Born:"), this.bornPane,
                 new Label("Survives:"), this.survivesPane);
     }
 
     private void createTemplatesPane() {
-        this.templatesPane = new VBox(new Label("Templates:"));
+        this.templatesPane = new ScrollPane();
+        this.templatesPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+        this.templatesVBox = new VBox(new Label("Templates:"));
+        this.templatesPane.setFitToWidth(true);
         this.templatesGroup = new ToggleGroup();
 
         RuleTemplate[] ruleTemplates = RuleTemplate.values();
@@ -57,6 +59,8 @@ public class RulesPane extends VBox {
         IntStream.range(0, this.templateButtons.length).
                 mapToObj(index -> ruleTemplates[index]).
                 forEach(this::createTemplateButton);
+
+        this.templatesPane.setContent(this.templatesVBox);
     }
 
     private void createTemplateButton(RuleTemplate template) {
@@ -66,7 +70,7 @@ public class RulesPane extends VBox {
         templateButton.setMaxWidth(Integer.MAX_VALUE);
         templateButton.setTextAlignment(TextAlignment.CENTER);
         templateButton.setUserData(template);
-        this.templatesPane.getChildren().add(templateButton);
+        this.templatesVBox.getChildren().add(templateButton);
     }
 
     private void subscribeOnRulesChanges() {
