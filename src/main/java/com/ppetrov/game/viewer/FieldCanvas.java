@@ -54,9 +54,9 @@ public class FieldCanvas extends ScrollPane {
     }
 
     public Observable<Map> getMapChanges() {
-        return JavaFxObservable.fromNodeEvents(this.canvas, MouseEvent.MOUSE_DRAGGED).
-                mergeWith(JavaFxObservable.fromNodeEvents(this.canvas, MouseEvent.MOUSE_PRESSED)).
-                map(event -> this.map);
+        return JavaFxObservable.fromNodeEvents(this.canvas, MouseEvent.MOUSE_DRAGGED)
+                .mergeWith(JavaFxObservable.fromNodeEvents(this.canvas, MouseEvent.MOUSE_PRESSED))
+                .map(event -> this.map);
     }
 
     public void setBrush(Map brush) {
@@ -74,8 +74,8 @@ public class FieldCanvas extends ScrollPane {
                 int brushWidth = this.brush.getWidth();
 
                 IntStream.range(0, brushHeight).forEach(row ->
-                        IntStream.range(0, brushHeight).filter(column -> this.brush.isSet(row, column)).
-                                forEach(column -> this.map.setCell(
+                        IntStream.range(0, brushHeight).filter(column -> this.brush.isSet(row, column))
+                                .forEach(column -> this.map.setCell(
                                         this.cellUnderCursor.row + row - brushHeight / 2,
                                         this.cellUnderCursor.column + column - brushWidth / 2,
                                         isPrimary
@@ -120,8 +120,8 @@ public class FieldCanvas extends ScrollPane {
             int brushWidth = this.brush.getWidth();
 
             IntStream.range(0, brushHeight).forEach(row ->
-                    IntStream.range(0, brushHeight).filter(column -> this.brush.isSet(row, column)).
-                            forEach(column -> drawCell(gc,
+                    IntStream.range(0, brushHeight).filter(column -> this.brush.isSet(row, column))
+                            .forEach(column -> drawCell(gc,
                                     this.map.fixRow(this.cellUnderCursor.row + row - brushHeight / 2),
                                     this.map.fixColumn(this.cellUnderCursor.column + column - brushWidth / 2))
                             )

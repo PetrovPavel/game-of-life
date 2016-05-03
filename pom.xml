@@ -24,7 +24,8 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.ppetrov.game.viewer.MainForm</mainClass>
+                            <mainClass>com.ppetrov.game.viewer.MainForm
+                            </mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

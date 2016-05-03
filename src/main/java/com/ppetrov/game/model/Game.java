@@ -10,13 +10,13 @@ public class Game {
                                      Observable<Integer> speed,
                                      Observable<Boolean> pause,
                                      Observable<Boolean> next) {
-        return speed.switchMap(currentSpeed ->
-                Observable.interval(currentSpeed, TimeUnit.MILLISECONDS)).
-                withLatestFrom(pause, (tick, play) -> play).
-                filter(Boolean::booleanValue).
-                mergeWith(next).
-                withLatestFrom(rules, (play, currentRules) -> currentRules).
-                scan(getDefaultMap(), (currentMap, currentRules) -> currentRules.nextState(currentMap));
+        return speed
+                .switchMap(currentSpeed -> Observable.interval(currentSpeed, TimeUnit.MILLISECONDS))
+                .withLatestFrom(pause, (tick, play) -> play)
+                .filter(Boolean::booleanValue)
+                .mergeWith(next)
+                .withLatestFrom(rules, (play, currentRules) -> currentRules)
+                .scan(getDefaultMap(), (currentMap, currentRules) -> currentRules.nextState(currentMap));
     }
 
     private static Map getDefaultMap() {

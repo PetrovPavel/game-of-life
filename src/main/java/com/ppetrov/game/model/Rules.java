@@ -15,8 +15,16 @@ public class Rules {
     private final Set<Integer> survives;
 
     public Rules(int[] born, int[] survives) {
-        this.born = Collections.unmodifiableSet(Arrays.stream(born).boxed().collect(Collectors.toSet()));
-        this.survives = Collections.unmodifiableSet(Arrays.stream(survives).boxed().collect(Collectors.toSet()));
+        this.born = Collections.unmodifiableSet(
+                Arrays.stream(born)
+                        .boxed()
+                        .collect(Collectors.toSet())
+        );
+        this.survives = Collections.unmodifiableSet(
+                Arrays.stream(survives)
+                        .boxed()
+                        .collect(Collectors.toSet())
+        );
     }
 
     public Map nextState(Map map) {
@@ -24,15 +32,7 @@ public class Rules {
 
         IntStream.range(0, map.getHeight()).forEach(
                 row -> IntStream.range(0, map.getWidth()).forEach(
-                        column -> {
-                            int aliveNeighbours = countOfAliveNeighbours(map, row, column);
-                            if (this.born.contains(aliveNeighbours) &&
-                                    !map.isSet(row, column)) {
-                                nextStateField[row][column] = true;
-                            } else if (!this.survives.contains(aliveNeighbours)) {
-                                nextStateField[row][column] = false;
-                            }
-                        }
+                        column -> setNextState(map, nextStateField, row, column)
                 )
         );
 
@@ -47,20 +47,32 @@ public class Rules {
         return ArrayUtils.toPrimitive(this.survives.toArray(new Integer[this.survives.size()]));
     }
 
+    private void setNextState(Map map, Boolean[][] nextStateField, int row, int column) {
+        int aliveNeighbours = countOfAliveNeighbours(map, row, column);
+        if (this.born.contains(aliveNeighbours) &&
+                !map.isSet(row, column)) {
+            nextStateField[row][column] = true;
+        } else if (!this.survives.contains(aliveNeighbours)) {
+            nextStateField[row][column] = false;
+        }
+    }
+
     private int countOfAliveNeighbours(Map map, int row, int column) {
-        return IntStream.rangeClosed(row - 1, row + 1).
-                mapToLong(i -> IntStream.rangeClosed(column - 1, column + 1).
-                        filter(j -> !(i == row && j == column) && map.isSet(i, j)).
-                        count()).
-                mapToInt(Math::toIntExact).sum();
+        return IntStream.rangeClosed(row - 1, row + 1)
+                .mapToLong(i -> IntStream.rangeClosed(column - 1, column + 1)
+                        .filter(j -> !(i == row && j == column) && map.isSet(i, j))
+                        .count())
+                .mapToInt(Math::toIntExact).sum();
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("B");
+
         this.born.forEach(sb::append);
         sb.append("/S");
         this.survives.forEach(sb::append);
+
         return sb.toString();
     }
 
@@ -72,12 +84,16 @@ public class Rules {
             return true;
         } else {
             Rules that = (Rules) obj;
-            return this.born.equals(that.born) && this.survives.equals(that.survives);
+            return this.born.equals(that.born)
+                    && this.survives.equals(that.survives);
         }
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(this.born).append(this.survives).toHashCode();
+        return new HashCodeBuilder(17, 37)
+                .append(this.born)
+                .append(this.survives)
+                .toHashCode();
     }
 }

@@ -51,13 +51,14 @@ public class TogglePane extends GridPane {
     }
 
     private boolean isSelected(int... selectedIndexes) {
-        return IntStream.of(selectedIndexes).
-                mapToObj(index -> this.buttons[index]).
-                allMatch(ToggleButton::isSelected) &&
-                IntStream.range(0, this.buttons.length).
-                        filter(index -> !ArrayUtils.contains(selectedIndexes, index)).
-                        mapToObj(index -> this.buttons[index]).
-                        noneMatch(ToggleButton::isSelected);
+        boolean specifiedAreSelected = IntStream.of(selectedIndexes)
+                .mapToObj(index -> this.buttons[index])
+                .allMatch(ToggleButton::isSelected);
+        boolean othersAreNot = IntStream.range(0, this.buttons.length)
+                .filter(index -> !ArrayUtils.contains(selectedIndexes, index))
+                .mapToObj(index -> this.buttons[index])
+                .noneMatch(ToggleButton::isSelected);
+        return specifiedAreSelected && othersAreNot;
     }
 
     /**
@@ -65,17 +66,17 @@ public class TogglePane extends GridPane {
      */
     public Observable<int[]> getSelectionChanges() {
         List<Observable<Integer>> buttonIndexes =
-                IntStream.range(0, this.buttons.length).
-                        mapToObj(index -> Observable.just(index).mergeWith(
-                                JavaFxObservable.fromObservableValue(this.buttons[index].selectedProperty()).
-                                        map(selected -> index))).
-                        collect(Collectors.toList());
+                IntStream.range(0, this.buttons.length)
+                        .mapToObj(index -> Observable.just(index).mergeWith(
+                                JavaFxObservable.fromObservableValue(this.buttons[index].selectedProperty())
+                                        .map(selected -> index)))
+                        .collect(Collectors.toList());
 
         return Observable.combineLatest(
                 buttonIndexes,
-                indexes -> Stream.of(indexes).mapToInt(index -> (Integer) index).
-                        filter(index -> this.buttons[index].isSelected()).
-                        toArray()
+                indexes -> Stream.of(indexes).mapToInt(index -> (Integer) index)
+                        .filter(index -> this.buttons[index].isSelected())
+                        .toArray()
         );
     }
 

@@ -42,7 +42,8 @@ public class RulesPane extends VBox {
 
         this.bornSurvivesVBox.getChildren().addAll(
                 new Label("Born:"), this.bornPane,
-                new Label("Survives:"), this.survivesPane);
+                new Label("Survives:"), this.survivesPane
+        );
     }
 
     private void createTemplatesPane() {
@@ -56,9 +57,9 @@ public class RulesPane extends VBox {
         RuleTemplate[] ruleTemplates = RuleTemplate.values();
         this.templateButtons = new ToggleButton[ruleTemplates.length];
 
-        IntStream.range(0, this.templateButtons.length).
-                mapToObj(index -> ruleTemplates[index]).
-                forEach(this::createTemplateButton);
+        IntStream.range(0, this.templateButtons.length)
+                .mapToObj(index -> ruleTemplates[index])
+                .forEach(this::createTemplateButton);
 
         this.templatesPane.setContent(this.templatesVBox);
     }
@@ -103,9 +104,9 @@ public class RulesPane extends VBox {
     }
 
     public Observable<RuleTemplate> getTemplatesChanges() {
-        return JavaFxObservable.fromObservableValue(this.templatesGroup.selectedToggleProperty()).
-                filter(toggle -> toggle != null).
-                map(Toggle::getUserData).cast(RuleTemplate.class);
+        return JavaFxObservable.fromObservableValue(this.templatesGroup.selectedToggleProperty())
+                .filter(toggle -> toggle != null)
+                .map(Toggle::getUserData).cast(RuleTemplate.class);
     }
 
 }

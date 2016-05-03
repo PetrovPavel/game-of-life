@@ -82,11 +82,9 @@ public class MainForm extends Application {
         pauseButton.setGraphic(new ImageView("/icons/pause.png"));
 
         this.pause = Observable.just(true).mergeWith(
-                JavaFxObservable.fromActionEvents(pauseButton).
-                        map(event -> false).
-                        mergeWith(
-                                JavaFxObservable.fromActionEvents(resumeButton).map(event -> true)
-                        )
+                JavaFxObservable.fromActionEvents(pauseButton)
+                        .map(event -> false)
+                        .mergeWith(JavaFxObservable.fromActionEvents(resumeButton).map(event -> true))
         );
 
         Label speedLabel = new Label();
@@ -96,8 +94,8 @@ public class MainForm extends Application {
         speedSlider.setBlockIncrement(100);
         speedSlider.setTooltip(new Tooltip("Speed"));
 
-        this.speed = JavaFxObservable.fromObservableValue(speedSlider.valueProperty()).
-                map(change -> Math.abs(change.intValue()));
+        this.speed = JavaFxObservable.fromObservableValue(speedSlider.valueProperty())
+                .map(change -> Math.abs(change.intValue()));
         speedLabel.textProperty().bind(
                 JavaFxSubscriber.toBinding(speed.map(this::getSpeedInSecondsString))
         );
@@ -171,8 +169,8 @@ public class MainForm extends Application {
     }
 
     private void startGame() {
-        this.gameSubscription = new Game().startGame(this.rules, this.speed, this.pause, this.next).
-                subscribe(map -> {
+        this.gameSubscription = new Game().startGame(this.rules, this.speed, this.pause, this.next)
+                .subscribe(map -> {
                     this.mainCanvas.setMap(map);
                     Platform.runLater(this.mainCanvas::redraw);
                 });

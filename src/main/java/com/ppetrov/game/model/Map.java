@@ -2,6 +2,7 @@ package com.ppetrov.game.model;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 public class Map {
 
@@ -41,11 +42,10 @@ public class Map {
 
     public void fillRandomly() {
         Random random = new Random();
-        for (int i = 0; i < this.field.length; i++) {
-            for (int j = 0; j < this.field[i].length; j++) {
-                this.field[i][j] = random.nextDouble() < 0.25;
-            }
-        }
+        IntStream.range(0, this.field.length)
+                .forEach(row -> IntStream.range(0, this.field[row].length)
+                        .forEach(column -> this.field[row][column] = random.nextDouble() < 0.25)
+                );
     }
 
     public int fixRow(int row) {
@@ -70,9 +70,9 @@ public class Map {
 
     private Boolean[][] deepArrayCopy(Boolean[][] source) {
         Boolean[][] copy = new Boolean[source.length][];
-        for (int i = 0; i < source.length; i++) {
-            copy[i] = Arrays.copyOf(source[i], source[i].length);
-        }
+        IntStream.range(0, source.length).forEach(
+                row -> copy[row] = Arrays.copyOf(source[row], source[row].length)
+        );
         return copy;
     }
 
