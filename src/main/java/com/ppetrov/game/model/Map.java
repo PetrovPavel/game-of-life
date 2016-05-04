@@ -6,15 +6,19 @@ import java.util.stream.IntStream;
 
 public class Map {
 
-    private Boolean[][] field;
-
-    public Map(Boolean[][] field) {
-        this.field = deepArrayCopy(field);
-    }
+    private Cell[][] field;
 
     public Map(int width, int height) {
-        this.field = new Boolean[height][width];
+        this.field = new Cell[width][height];
         fillRandomly();
+    }
+
+    public Map(Boolean[][] field) {
+        this.field = fillFromBoolean(field);
+    }
+
+    public Map(Cell[][] field) {
+        this.field = deepArrayCopy(field);
     }
 
     public int getWidth() {
@@ -29,14 +33,14 @@ public class Map {
     }
 
     public boolean isSet(int row, int column) {
-        return this.field[fixRow(row)][fixColumn(column)];
+        return this.field[fixRow(row)][fixColumn(column)].isAlive();
     }
 
-    public void setCell(int row, int column, boolean value) {
-        this.field[fixRow(row)][fixColumn(column)] = value;
+    public void setCell(int row, int column, boolean alive) {
+        this.field[fixRow(row)][fixColumn(column)].setAlive(alive);
     }
 
-    public Boolean[][] getField() {
+    public Cell[][] getField() {
         return deepArrayCopy(this.field);
     }
 
@@ -44,7 +48,9 @@ public class Map {
         Random random = new Random();
         IntStream.range(0, this.field.length)
                 .forEach(row -> IntStream.range(0, this.field[row].length)
-                        .forEach(column -> this.field[row][column] = random.nextDouble() < 0.25)
+                        .forEach(column -> this.field[row][column] =
+                                new Cell(random.nextDouble() < 0.25)
+                        )
                 );
     }
 
@@ -68,8 +74,18 @@ public class Map {
         return column;
     }
 
-    private Boolean[][] deepArrayCopy(Boolean[][] source) {
-        Boolean[][] copy = new Boolean[source.length][];
+    private Cell[][] fillFromBoolean(Boolean[][] source) {
+        Cell[][] field = new Cell[source.length][source[0].length];
+        IntStream.range(0, source.length).forEach(
+                row -> IntStream.range(0, source[row].length).forEach(
+                        column -> field[row][column] = new Cell(source[row][column])
+                )
+        );
+        return field;
+    }
+
+    private Cell[][] deepArrayCopy(Cell[][] source) {
+        Cell[][] copy = new Cell[source.length][];
         IntStream.range(0, source.length).forEach(
                 row -> copy[row] = Arrays.copyOf(source[row], source[row].length)
         );

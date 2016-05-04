@@ -28,7 +28,7 @@ public class Rules {
     }
 
     public Map nextState(Map map) {
-        Boolean[][] nextStateField = map.getField();
+        Cell[][] nextStateField = map.getField();
 
         IntStream.range(0, map.getHeight()).forEach(
                 row -> IntStream.range(0, map.getWidth()).forEach(
@@ -47,13 +47,15 @@ public class Rules {
         return ArrayUtils.toPrimitive(this.survives.toArray(new Integer[this.survives.size()]));
     }
 
-    private void setNextState(Map map, Boolean[][] nextStateField, int row, int column) {
+    private void setNextState(Map map, Cell[][] nextStateField, int row, int column) {
         int aliveNeighbours = countOfAliveNeighbours(map, row, column);
         if (this.born.contains(aliveNeighbours) &&
                 !map.isSet(row, column)) {
-            nextStateField[row][column] = true;
+            nextStateField[row][column].setAlive(true);
         } else if (!this.survives.contains(aliveNeighbours)) {
-            nextStateField[row][column] = false;
+            nextStateField[row][column].setAlive(false);
+        } else {
+            nextStateField[row][column].addYear();
         }
     }
 
