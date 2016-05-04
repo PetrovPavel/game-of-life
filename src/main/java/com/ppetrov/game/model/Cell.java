@@ -2,6 +2,8 @@ package com.ppetrov.game.model;
 
 public class Cell {
 
+    public static int MAX_AGE = 10;
+
     private boolean alive;
     private int age;
 
@@ -30,7 +32,11 @@ public class Cell {
     }
 
     public void addYear() {
-        this.age++;
+        if (this.age < MAX_AGE) {
+            this.age++;
+        } else {
+            setAlive(false);
+        }
     }
 
 }

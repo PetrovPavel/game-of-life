@@ -54,7 +54,7 @@ public class Rules {
             nextStateField[row][column].setAlive(true);
         } else if (!this.survives.contains(aliveNeighbours)) {
             nextStateField[row][column].setAlive(false);
-        } else {
+        } else if (map.isSet(row, column)) {
             nextStateField[row][column].addYear();
         }
     }

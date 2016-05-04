@@ -1,6 +1,5 @@
 package com.ppetrov.game.model;
 
-import java.util.Arrays;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -85,9 +84,14 @@ public class Map {
     }
 
     private Cell[][] deepArrayCopy(Cell[][] source) {
-        Cell[][] copy = new Cell[source.length][];
+        Cell[][] copy = new Cell[source.length][source[0].length];
         IntStream.range(0, source.length).forEach(
-                row -> copy[row] = Arrays.copyOf(source[row], source[row].length)
+                row -> IntStream.range(0, source[row].length).forEach(
+                        column -> {
+                            Cell sourceCell = source[row][column];
+                            copy[row][column] = new Cell(sourceCell.isAlive(), sourceCell.getAge());
+                        }
+                )
         );
         return copy;
     }
