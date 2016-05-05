@@ -131,7 +131,9 @@ public class FieldCanvas extends ScrollPane {
 
     private void drawCalculatedCell(int row, int column) {
         GraphicsContext gc = this.canvas.getGraphicsContext2D();
-        gc.setFill(this.map.isSet(row, column) ? Color.DARKGREEN : Color.SANDYBROWN);
+        gc.setFill(this.map.isSet(row, column)
+                ? Color.DARKGREEN.deriveColor(0, 1.0, 1.0, 1.0 / this.map.getAge(row, column))
+                : Color.SANDYBROWN);
         drawCell(gc, row, column);
     }
 

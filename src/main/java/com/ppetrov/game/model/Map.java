@@ -39,6 +39,10 @@ public class Map {
         this.field[fixRow(row)][fixColumn(column)].setAlive(alive);
     }
 
+    public int getAge(int row, int column) {
+        return this.field[fixRow(row)][fixColumn(column)].getAge();
+    }
+
     public Cell[][] getField() {
         return deepArrayCopy(this.field);
     }
