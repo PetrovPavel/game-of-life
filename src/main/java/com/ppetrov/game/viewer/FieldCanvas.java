@@ -1,5 +1,6 @@
 package com.ppetrov.game.viewer;
 
+import com.ppetrov.game.model.Cell;
 import com.ppetrov.game.model.Map;
 import javafx.event.EventHandler;
 import javafx.scene.Cursor;
@@ -131,8 +132,9 @@ public class FieldCanvas extends ScrollPane {
 
     private void drawCalculatedCell(int row, int column) {
         GraphicsContext gc = this.canvas.getGraphicsContext2D();
+        int age = this.map.getAge(row, column);
         gc.setFill(this.map.isSet(row, column)
-                ? Color.DARKGREEN.deriveColor(0, 1.0, 1.0, 1.0 / this.map.getAge(row, column))
+                ? Color.DARKGREEN.deriveColor(0, 1.0, 1.0, 1.0 * (Cell.MAX_AGE - age) / age)
                 : Color.SANDYBROWN);
         drawCell(gc, row, column);
     }
