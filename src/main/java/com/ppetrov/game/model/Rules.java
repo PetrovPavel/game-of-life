@@ -49,13 +49,14 @@ public class Rules {
 
     private void setNextState(Map map, Cell[][] nextStateField, int row, int column) {
         int aliveNeighbours = countOfAliveNeighbours(map, row, column);
+        Cell cell = nextStateField[row][column];
         if (this.born.contains(aliveNeighbours) &&
                 !map.isSet(row, column)) {
-            nextStateField[row][column].setAlive(true);
+            nextStateField[row][column] = cell.setAlive(true);
         } else if (!this.survives.contains(aliveNeighbours)) {
-            nextStateField[row][column].setAlive(false);
+            nextStateField[row][column] = cell.setAlive(false);
         } else if (map.isSet(row, column)) {
-            nextStateField[row][column].addYear();
+            nextStateField[row][column] = cell.addYear();
         }
     }
 

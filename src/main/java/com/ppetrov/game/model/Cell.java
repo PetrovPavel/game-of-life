@@ -4,8 +4,8 @@ public class Cell {
 
     public static int MAX_AGE = 10;
 
-    private boolean alive;
-    private int age;
+    private final boolean alive;
+    private final int age;
 
     public Cell(boolean alive) {
         this(alive, 0);
@@ -20,22 +20,19 @@ public class Cell {
         return this.alive;
     }
 
-    public void setAlive(boolean alive) {
-        if (this.alive != alive) {
-            this.age = 0;
-        }
-        this.alive = alive;
+    public Cell setAlive(boolean alive) {
+        return new Cell(alive, this.alive != alive ? 0 : this.age);
     }
 
     public int getAge() {
         return this.age;
     }
 
-    public void addYear() {
+    public Cell addYear() {
         if (this.age < MAX_AGE) {
-            this.age++;
+            return new Cell(this.alive, this.age + 1);
         } else {
-            setAlive(false);
+            return new Cell(false);
         }
     }
 
