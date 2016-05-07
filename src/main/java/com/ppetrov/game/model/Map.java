@@ -36,7 +36,8 @@ public class Map {
     }
 
     public void setCell(int row, int column, boolean alive) {
-        this.field[fixRow(row)][fixColumn(column)].setAlive(alive);
+        Cell cell = this.field[fixRow(row)][fixColumn(column)];
+        this.field[fixRow(row)][fixColumn(column)] = cell.setAlive(alive);
     }
 
     public int getAge(int row, int column) {
