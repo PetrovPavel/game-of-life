@@ -36,4 +36,8 @@ public class Cell {
         }
     }
 
+    public Cell getCopy() {
+        return new Cell(this.alive, this.age);
+    }
+
 }

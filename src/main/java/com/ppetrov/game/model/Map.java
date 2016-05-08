@@ -92,10 +92,7 @@ public class Map {
         Cell[][] copy = new Cell[source.length][source[0].length];
         IntStream.range(0, source.length).forEach(
                 row -> IntStream.range(0, source[row].length).forEach(
-                        column -> {
-                            Cell sourceCell = source[row][column];
-                            copy[row][column] = new Cell(sourceCell.isAlive(), sourceCell.getAge());
-                        }
+                        column -> copy[row][column] = source[row][column].getCopy()
                 )
         );
         return copy;
