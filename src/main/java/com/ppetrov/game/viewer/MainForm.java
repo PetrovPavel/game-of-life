@@ -22,7 +22,6 @@ import rx.subscribers.JavaFxSubscriber;
 public class MainForm extends Application {
 
     private FieldCanvas mainCanvas;
-    private RulesPane rulesPane;
 
     private Subscription gameSubscription;
     private Subscription brushSubscription;
@@ -129,6 +128,7 @@ public class MainForm extends Application {
 
         createBrushTab(tabPane);
         createRulesTab(tabPane);
+        createSettingsTab(tabPane);
 
         parent.getChildren().add(tabPane);
     }
@@ -148,15 +148,18 @@ public class MainForm extends Application {
         Tab rulesTab = new Tab("Rules");
         rulesTab.setClosable(false);
 
-        createRulesPane();
+        RulesPane rulesPane = new RulesPane();
+        this.rules = rulesPane.getRulesChanges();
 
-        rulesTab.setContent(this.rulesPane);
+        rulesTab.setContent(rulesPane);
         tabPane.getTabs().add(rulesTab);
     }
 
-    private void createRulesPane() {
-        this.rulesPane = new RulesPane();
-        this.rules = this.rulesPane.getRulesChanges();
+    private void createSettingsTab(TabPane tabPane) {
+        Tab settingsTab = new Tab("Settings");
+        settingsTab.setClosable(false);
+
+        tabPane.getTabs().add(settingsTab);
     }
 
     private String getSpeedInSecondsString(double speedInMillis) {
