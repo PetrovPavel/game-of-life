@@ -5,14 +5,16 @@ public class Cell {
     public static int MAX_AGE = 10;
 
     private final boolean alive;
+    private final boolean immortal;
     private final int age;
 
     public Cell(boolean alive) {
-        this(alive, 0);
+        this(alive, false, 0);
     }
 
-    public Cell(boolean alive, int age) {
+    public Cell(boolean alive, boolean immortal, int age) {
         this.alive = alive;
+        this.immortal = immortal;
         this.age = age;
     }
 
@@ -21,7 +23,7 @@ public class Cell {
     }
 
     public Cell setAlive(boolean alive) {
-        return new Cell(alive, this.alive != alive ? 0 : this.age);
+        return new Cell(alive, false, this.alive != alive ? 0 : this.age);
     }
 
     public int getAge() {
@@ -29,15 +31,19 @@ public class Cell {
     }
 
     public Cell addYear() {
-        if (this.age < MAX_AGE) {
-            return new Cell(this.alive, this.age + 1);
+        if (this.age < MAX_AGE || this.immortal) {
+            return new Cell(this.alive, false, this.age + 1);
         } else {
             return new Cell(false);
         }
     }
 
+    public Cell immortalize(boolean immortal) {
+        return new Cell(this.alive, immortal, this.age);
+    }
+
     public Cell getCopy() {
-        return new Cell(this.alive, this.age);
+        return new Cell(this.alive, this.immortal, this.age);
     }
 
 }
