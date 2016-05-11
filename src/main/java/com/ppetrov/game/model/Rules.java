@@ -13,6 +13,7 @@ public class Rules {
 
     private final Set<Integer> born;
     private final Set<Integer> survives;
+    private int maxAge = 20;
 
     public Rules(int[] born, int[] survives) {
         this.born = Collections.unmodifiableSet(
@@ -47,6 +48,10 @@ public class Rules {
         return ArrayUtils.toPrimitive(this.survives.toArray(new Integer[this.survives.size()]));
     }
 
+    public void setMaxAge(int maxAge) {
+        this.maxAge = maxAge;
+    }
+
     private void setNextState(Map map, Cell[][] nextStateField, int row, int column) {
         int aliveNeighbours = countOfAliveNeighbours(map, row, column);
         Cell cell = nextStateField[row][column];
@@ -56,7 +61,11 @@ public class Rules {
         } else if (!this.survives.contains(aliveNeighbours)) {
             nextStateField[row][column] = cell.setAlive(false);
         } else if (map.isSet(row, column)) {
-            nextStateField[row][column] = cell.addYear();
+            if (cell.getAge() < this.maxAge || cell.isImmortal()) {
+                nextStateField[row][column] = cell.addYear();
+            } else {
+                nextStateField[row][column] = new Cell(false);
+            }
         }
     }
 

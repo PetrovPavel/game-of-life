@@ -159,6 +159,20 @@ public class MainForm extends Application {
         Tab settingsTab = new Tab("Settings");
         settingsTab.setClosable(false);
 
+        VBox settingsPane = new VBox();
+
+        Label ageLabel = new Label("Max age:");
+        Slider ageSlider = new Slider(0, 100, 20);
+        ageSlider.setShowTickMarks(true);
+        ageSlider.setMajorTickUnit(20);
+        ageSlider.setBlockIncrement(20);
+
+        JavaFxObservable.fromObservableValue(ageSlider.valueProperty())
+                .map(Number::intValue);
+
+        settingsPane.getChildren().addAll(ageLabel, ageSlider);
+
+        settingsTab.setContent(settingsPane);
         tabPane.getTabs().add(settingsTab);
     }
 

@@ -2,8 +2,6 @@ package com.ppetrov.game.model;
 
 public class Cell {
 
-    public static int MAX_AGE = 10;
-
     private final boolean alive;
     private final boolean immortal;
     private final int age;
@@ -31,11 +29,11 @@ public class Cell {
     }
 
     public Cell addYear() {
-        if (this.age < MAX_AGE || this.immortal) {
-            return new Cell(this.alive, false, this.age + 1);
-        } else {
-            return new Cell(false);
-        }
+        return new Cell(this.alive, false, this.age + 1);
+    }
+
+    public boolean isImmortal() {
+        return this.immortal;
     }
 
     public Cell immortalize(boolean immortal) {
